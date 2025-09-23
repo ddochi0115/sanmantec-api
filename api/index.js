@@ -26,8 +26,9 @@ const pool = new Pool({
 });
 
 // 헬스체크: https://<도메인>/api
-app.get("/", (req, res) => res.json({ ok: true, message: "API is working!" }));
-
+app.get("/api", (req, res) => {
+  res.json({ ok: true, message: "API is working!" });
+});
 // 회원가입 (POST /api/signup)
 app.post("/signup", async (req, res) => {
   const { userId, password } = req.body;
