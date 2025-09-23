@@ -11,8 +11,8 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "https://jhyeein.github.io",
-      "http://localhost:5500",
+      "https://jhyeein.github.io", // 깃허브 페이지
+      "http://localhost:5500",     // 로컬 테스트
       "http://127.0.0.1:5500"
     ],
     methods: ["GET", "POST"]
@@ -25,11 +25,12 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// 헬스체크: https://<도메인>/api
-app.get("/api", (req, res) => {
+// ✅ 헬스체크: https://<도메인>/api
+app.get("/", (req, res) => {
   res.json({ ok: true, message: "API is working!" });
 });
-// 회원가입 (POST /api/signup)
+
+// ✅ 회원가입 (POST /api/signup)
 app.post("/signup", async (req, res) => {
   const { userId, password } = req.body;
   if (!userId || !password) {
@@ -51,7 +52,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// 로그인 (POST /api/login)
+// ✅ 로그인 (POST /api/login)
 app.post("/login", async (req, res) => {
   const { userId, password } = req.body;
   try {
@@ -60,10 +61,18 @@ app.post("/login", async (req, res) => {
       [userId]
     );
     const row = result.rows[0];
-    if (!row) return res.status(401).json({ message: "아이디 또는 비밀번호가 올바르지 않습니다." });
+    if (!row) {
+      return res
+        .status(401)
+        .json({ message: "아이디 또는 비밀번호가 올바르지 않습니다." });
+    }
 
     const ok = await bcrypt.compare(password, row.password_hash);
-    if (!ok) return res.status(401).json({ message: "아이디 또는 비밀번호가 올바르지 않습니다." });
+    if (!ok) {
+      return res
+        .status(401)
+        .json({ message: "아이디 또는 비밀번호가 올바르지 않습니다." });
+    }
 
     res.json({ message: "로그인 성공", user: { userId: row.user_id } });
   } catch (e) {
@@ -72,5 +81,5 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// ★ Vercel 서버리스 함수 핸들러로 Express 앱 내보내기
+// ✅ Vercel 서버리스 핸들러
 module.exports = (req, res) => app(req, res);
