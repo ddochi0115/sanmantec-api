@@ -1,0 +1,11 @@
+{
+  "name": "sanmantec-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "pg": "^8.16.3"
+  }
+}
