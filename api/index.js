@@ -39,5 +39,5 @@ app.post("/login", async (req, res) => {
   res.json({ message: "로그인 성공", user: { userId: row.user_id } });
 });
 
-// Vercel 서버리스용 export
-module.exports = (req, res) => app(req, res);
+// 🔑 Vercel은 listen 필요 없음
+module.exports = app;
