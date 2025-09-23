@@ -12,7 +12,7 @@ const pool = new Pool({
 });
 
 // 회원가입
-app.post("/signup", async (req, res) => {
+app.post("/api/signup", async (req, res) => {
   const { userId, password } = req.body;
   if (!userId || !password) return res.status(400).json({ message: "입력값 확인 필요" });
 
@@ -27,7 +27,7 @@ app.post("/signup", async (req, res) => {
 });
 
 // 로그인
-app.post("/login", async (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { userId, password } = req.body;
   const result = await pool.query("SELECT * FROM users WHERE user_id=$1", [userId]);
   const row = result.rows[0];
