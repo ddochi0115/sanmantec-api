@@ -13,13 +13,12 @@ app.use(express.json());
 
 // ★★★★★ PostgreSQL 데이터베이스 연결 정보 설정 ★★★★★
 const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "app_db",
-  password: "1111",
-  port: 5432,
+  user: process.env.PGUSER,
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+  port: process.env.PGPORT,
 });
-
 // 데이터베이스 연결 테스트
 pool.connect((err, client, release) => {
   if (err) {
