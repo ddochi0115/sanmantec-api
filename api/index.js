@@ -1,4 +1,3 @@
-// api/index.js
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
@@ -7,11 +6,11 @@ const bcrypt = require("bcryptjs");
 const app = express();
 app.use(express.json());
 
-// ✅ CORS 설정 (프론트 도메인 허용)
+// CORS: 프론트 도메인 허용
 app.use(
   cors({
     origin: [
-      "https://jhyeein.github.io", // 깃허브 페이지
+      "https://jhyeein.github.io", // GitHub Pages
       "http://localhost:5500",     // 로컬 테스트
       "http://127.0.0.1:5500"
     ],
@@ -19,19 +18,19 @@ app.use(
   })
 );
 
-// ✅ Neon DB 연결
+// DB 풀 (Neon)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// ✅ 헬스체크 (https://도메인/api)
-app.get("/", (req, res) => {
+// 헬스체크: GET /api
+app.get("/api", (req, res) => {
   res.json({ ok: true, message: "API is working!" });
 });
 
-// ✅ 회원가입 (POST /api/signup)
-app.post("/signup", async (req, res) => {
+// 회원가입: POST /api/signup
+app.post("/api/signup", async (req, res) => {
   const { userId, password } = req.body;
   if (!userId || !password) {
     return res.status(400).json({ message: "입력값 확인 필요" });
@@ -52,8 +51,8 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// ✅ 로그인 (POST /api/login)
-app.post("/login", async (req, res) => {
+// 로그인: POST /api/login
+app.post("/api/login", async (req, res) => {
   const { userId, password } = req.body;
   try {
     const result = await pool.query(
@@ -61,18 +60,16 @@ app.post("/login", async (req, res) => {
       [userId]
     );
     const row = result.rows[0];
-    if (!row) {
+    if (!row)
       return res
         .status(401)
         .json({ message: "아이디 또는 비밀번호가 올바르지 않습니다." });
-    }
 
     const ok = await bcrypt.compare(password, row.password_hash);
-    if (!ok) {
+    if (!ok)
       return res
         .status(401)
         .json({ message: "아이디 또는 비밀번호가 올바르지 않습니다." });
-    }
 
     res.json({ message: "로그인 성공", user: { userId: row.user_id } });
   } catch (e) {
@@ -81,5 +78,5 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// ✅ Vercel 서버리스 핸들러
+// Vercel 서버리스 함수 핸들러
 module.exports = (req, res) => app(req, res);
