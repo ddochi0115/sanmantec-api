@@ -48,3 +48,6 @@ app.post("/login", async (req, res) => {
 
 // Vercel 서버리스
 module.exports = app;
+app.get("/api", (req, res) => {
+  res.json({ ok: true, message: "API is working!" });
+});
