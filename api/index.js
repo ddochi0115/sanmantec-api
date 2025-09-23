@@ -7,7 +7,7 @@ const bcrypt = require("bcryptjs");
 const app = express();
 app.use(express.json());
 
-// CORS: 프론트 도메인만 허용
+// ✅ CORS 설정 (프론트 도메인 허용)
 app.use(
   cors({
     origin: [
@@ -19,13 +19,13 @@ app.use(
   })
 );
 
-// DB 풀 (Neon)
+// ✅ Neon DB 연결
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// ✅ 헬스체크: https://<도메인>/api
+// ✅ 헬스체크 (https://도메인/api)
 app.get("/", (req, res) => {
   res.json({ ok: true, message: "API is working!" });
 });
