@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
+const { ethers } = require("ethers"); 
 
 const app = express();
 app.use(express.json());
@@ -75,6 +76,26 @@ app.post("/api/login", async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+// 지갑 생성
+app.post("/api/wallet/create", async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) {
+    return res.status(400).json({ message: "userId 필요" });
+  }
+
+  try {
+    const wallet = ethers.Wallet.createRandom();
+    await pool.query(
+      "INSERT INTO wallets (user_id, address, private_key) VALUES ($1,$2,$3)",
+      [userId, wallet.address, wallet.privateKey]
+    );
+    res.json({ message: "지갑 생성 성공", address: wallet.address });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "지갑 생성 실패" });
   }
 });
 
