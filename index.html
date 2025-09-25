@@ -6,50 +6,28 @@
     <title>Sanmantec Inheritance Service</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      :root {
-        --radius: 12px;
-      }
-      html,
-      body {
-        height: 100%;
-      }
-      .hidden {
-        display: none;
-      }
+      :root { --radius: 12px; }
+      html, body { height: 100%; }
+      .hidden { display: none; }
       .tab-active {
         background: rgb(238 242 255);
         color: rgb(55 48 163);
         border-color: rgb(199 210 254);
       }
-      .chip {
-        font-size: 12px;
-        padding: 2px 8px;
-        border-radius: 9999px;
-        border-width: 1px;
-        display: inline-block;
-      }
     </style>
   </head>
-  <body
-    class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center p-6"
-  >
+  <body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center p-6">
     <div class="w-full max-w-3xl">
       <div class="mb-10 text-center">
         <h1 class="text-3xl font-extrabold tracking-tight">
-          <span
-            class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600"
-          >
+          <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
             Sanmantec Inheritance Service
           </span>
         </h1>
-        <p class="mt-2 text-slate-600 text-sm">
-          Secure crypto inheritance, made simple.
-        </p>
+        <p class="mt-2 text-slate-600 text-sm">Secure crypto inheritance, made simple.</p>
       </div>
 
-      <div
-        class="rounded-2xl bg-white/90 shadow-xl ring-1 ring-slate-200 backdrop-blur p-6 md:p-8"
-      >
+      <div class="rounded-2xl bg-white/90 shadow-xl ring-1 ring-slate-200 backdrop-blur p-6 md:p-8">
         <!-- 로그인 -->
         <form id="login-view" class="space-y-6">
           <div class="space-y-2">
@@ -107,8 +85,7 @@
                 <button id="openCreateBtn"
                   class="h-10 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700">상속지갑 만들기</button>
                 <button id="openClaimBtn"
-                  class="h-10 px-4 rounded-xl border border-indigo-500 text-indigo-600 bg-white font-medium hover:bg-indigo-50">지갑
-                  상속받기</button>
+                  class="h-10 px-4 rounded-xl border border-indigo-500 text-indigo-600 bg-white font-medium hover:bg-indigo-50">지갑 상속받기</button>
                 <button id="logoutBtn"
                   class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50">로그아웃</button>
               </div>
@@ -175,6 +152,8 @@
         const signupPassword = document.getElementById('signupPassword');
         const signupPassword2 = document.getElementById('signupPassword2');
         const pwMatchMsg = document.getElementById('pwMatchMsg');
+        const walletListOutgoing = document.getElementById('wallet-list-outgoing');
+        const emptyState = document.getElementById('empty-state');
 
         // 유틸
         function show(viewEl) {
@@ -273,7 +252,7 @@
         toLoginBtn.addEventListener('click', () => show(loginView));
         if (logoutBtn) logoutBtn.addEventListener('click', () => { window._userId = null; show(loginView); });
 
-        // (1) 상단 버튼 → 더미 동작
+        // 상단 버튼 → 더미 동작
         if (openCreateBtn) openCreateBtn.addEventListener('click', () => {
           alert("이 기능은 구현되지 않았습니다.");
         });
@@ -281,10 +260,11 @@
           alert("이 기능은 구현되지 않았습니다.");
         });
 
-        // (2) emptyCreateBtn → 지갑 생성 화면으로 이동
+        // emptyCreateBtn → 지갑 생성 화면으로 이동
         if (emptyCreateBtn) emptyCreateBtn.addEventListener('click', () => show(createView));
+        if (cancelCreateBtn) cancelCreateBtn.addEventListener('click', () => show(dashView));
 
-        // (3) create-view 제출 시 → 실제 API 호출
+        // create-view 제출 시 → 실제 API 호출 + 리스트 추가
         createView.addEventListener("submit", async (e) => {
           e.preventDefault();
           const userId = window._userId;
@@ -302,15 +282,24 @@
             const result = await response.json();
             if (!response.ok) throw new Error(result?.message || "지갑 생성 실패");
 
-            alert((result.message || "지갑 생성 성공") + (result.address ? `\n주소: ${result.address}` : ""));
+            alert((result.message || "지갑 생성 성공"));
+
+            // 지갑 리스트에 추가
+            emptyState.classList.add("hidden"); // 빈 상태 숨기기
+            const card = document.createElement("div");
+            card.className = "p-4 rounded-xl border border-slate-300 bg-white shadow";
+            card.innerHTML = `
+              <p class="text-sm text-slate-600">주소</p>
+              <p class="font-mono break-all text-indigo-600">${result.address}</p>
+            `;
+            walletListOutgoing.appendChild(card);
+
             show(dashView);
           } catch (err) {
             console.error(err);
             alert("지갑 생성 실패: " + err.message);
           }
         });
-
-        if (cancelCreateBtn) cancelCreateBtn.addEventListener('click', () => show(dashView));
 
         // 초기화면
         show(loginView);
