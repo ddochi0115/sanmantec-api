@@ -50,12 +50,13 @@
       <div
         class="rounded-2xl bg-white/90 shadow-xl ring-1 ring-slate-200 backdrop-blur p-6 md:p-8"
       >
+        <!-- 로그인 -->
         <form id="login-view" class="space-y-6">
           <div class="space-y-2">
             <label
               for="loginUserId"
               class="block text-sm font-medium text-slate-700"
-            >아이디</label
+              >아이디</label
             >
             <input
               id="loginUserId"
@@ -69,7 +70,7 @@
             <label
               for="loginPassword"
               class="block text-sm font-medium text-slate-700"
-            >비밀번호</label
+              >비밀번호</label
             >
             <div class="relative">
               <input
@@ -103,12 +104,13 @@
           </button>
         </form>
 
+        <!-- 회원가입 -->
         <form id="signup-view" class="space-y-6 hidden">
           <div class="space-y-2">
             <label
               for="signupUserId"
               class="block text-sm font-medium text-slate-700"
-            >아이디</label
+              >아이디</label
             >
             <input
               id="signupUserId"
@@ -122,7 +124,7 @@
             <label
               for="signupPassword"
               class="block text-sm font-medium text-slate-700"
-            >비밀번호</label
+              >비밀번호</label
             >
             <input
               id="signupPassword"
@@ -136,7 +138,7 @@
             <label
               for="signupPassword2"
               class="block text-sm font-medium text-slate-700"
-            >비밀번호 확인</label
+              >비밀번호 확인</label
             >
             <input
               id="signupPassword2"
@@ -162,6 +164,7 @@
           </button>
         </form>
 
+        <!-- 대시보드 -->
         <section id="dashboard-view" class="hidden">
           <div class="flex flex-col gap-4 mb-4">
             <div class="flex items-center justify-between gap-4">
@@ -213,7 +216,7 @@
                 id="emptyCreateBtn"
                 class="h-10 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
               >
-                지갑 생성
+                지갑만들기
               </button>
             </div>
           </div>
@@ -236,101 +239,11 @@
           </div>
         </section>
 
+        <!-- 지갑 생성 -->
         <form id="create-view" class="space-y-6 hidden" autocomplete="off">
           <h2 id="formTitle" class="text-xl font-semibold tracking-tight">
             상속지갑 생성
           </h2>
-
-          <div class="space-y-2">
-            <label
-              for="heirName"
-              class="block text-sm font-medium text-slate-700"
-            >지갑 별명</label
-            >
-            <input
-              id="heirName"
-              type="text"
-              required
-              placeholder="지갑을 구분할 별명"
-              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4"
-            />
-          </div>
-
-          <div class="space-y-2">
-            <label
-              for="ownerAddress"
-              class="block text-sm font-medium text-slate-700"
-            >내 지갑 주소</label
-            >
-            <div class="flex gap-2">
-              <input
-                id="ownerAddress"
-                type="text"
-                required
-                placeholder="0x로 시작하는 주소"
-                class="flex-1 h-11 rounded-xl border border-slate-300 bg-white px-4"
-              />
-              <button
-                type="button"
-                id="copyOwnerAddrBtn"
-                class="h-11 px-3 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 whitespace-nowrap"
-              >
-                내 지갑 주소 복사
-              </button>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <label
-              for="heirAddress"
-              class="block text-sm font-medium text-slate-700"
-            >상속자 지갑 주소</label
-            >
-            <input
-              id="heirAddress"
-              type="text"
-              placeholder="0x로 시작하는 주소 (모르면 비워두세요)"
-              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4"
-            />
-            <div class="mt-2">
-              <button
-                type="button"
-                id="heirHelpBtn"
-                class="text-xs px-3 h-8 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"
-              >
-                상속자 지갑 주소를 모르시나요?
-              </button>
-            </div>
-
-            <div
-              id="heirHelpBox"
-              class="hidden mt-3 rounded-xl border border-indigo-200 bg-indigo-50/60 p-3"
-            >
-              <p class="text-sm text-indigo-800">
-                상속자에게 <strong>사용가이드 링크</strong>를 전달해 주세요.
-              </p>
-              <div class="mt-2 flex items-center gap-2">
-                <input
-                  id="metaLink"
-                  type="text"
-                  readonly
-                  value="https://jhyeein.github.io/"
-                  class="flex-1 h-10 rounded-lg border border-indigo-200 bg-white px-3 text-sm"
-                />
-                <button
-                  type="button"
-                  id="copyMetaLink"
-                  class="h-10 px-3 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700"
-                >
-                  사용가이드 링크 복사
-                </button>
-              </div>
-              <p class="mt-2 text-xs text-indigo-700">
-                상속자가 가이드를 보고 지갑을 만든 뒤, “지갑 상속받기”에서
-                연결/검증을 완료하면 소유자 승인을 진행할 수 있어요.
-              </p>
-            </div>
-          </div>
 
           <div class="flex items-center gap-3">
             <button
@@ -349,73 +262,6 @@
             </button>
           </div>
         </form>
-
-        <form id="claim-view" class="space-y-6 hidden" autocomplete="off">
-          <h2 class="text-xl font-semibold tracking-tight">지갑 상속받기</h2>
-          <div class="space-y-2">
-            <label
-              for="giverAddress"
-              class="block text-sm font-medium text-slate-700"
-            >상속해주는 사람 지갑 주소</label
-            >
-            <input
-              id="giverAddress"
-              type="text"
-              required
-              placeholder="0x로 시작하는 주소"
-              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4"
-            />
-          </div>
-          <div class="space-y-2">
-            <label
-              for="myHeirAddress"
-              class="block text-sm font-medium text-slate-700"
-            >내 지갑 주소</label
-            >
-            <input
-              id="myHeirAddress"
-              type="text"
-              required
-              placeholder="0x로 시작하는 주소"
-              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4"
-            />
-          </div>
-          <p class="text-xs text-slate-500">
-            상속지갑(소유자)이 먼저 생성되어 있어야 상속받기를 진행할 수
-            있습니다. 생성된 지갑의 <strong>소유자 지갑주소</strong>를 정확히
-            입력해 주세요.
-          </p>
-          <div class="flex items-center gap-3">
-            <button
-              type="submit"
-              id="claimSubmitBtn"
-              class="h-11 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
-            >
-              상속받기 생성
-            </button>
-            <button
-              type="button"
-              id="cancelClaimBtn"
-              class="h-11 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-            >
-              취소
-            </button>
-          </div>
-        </form>
-
-        <section id="created-view" class="hidden">
-          <div class="text-center space-y-3">
-            <div class="text-2xl">🎉</div>
-            <h3 class="text-lg font-semibold">지갑이 생성되었습니다!</h3>
-            <p class="text-sm text-slate-600">대시보드에서 확인할 수 있어요.</p>
-            <button
-              id="goDashboardBtn"
-              class="mt-2 h-11 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
-            >
-              대시보드로 가기
-            </button>
-          </div>
-        </section>
       </div>
     </div>
     <script>
@@ -425,16 +271,10 @@
         const signupView = document.getElementById('signup-view');
         const dashView = document.getElementById('dashboard-view');
         const createView = document.getElementById('create-view');
-        const claimView = document.getElementById('claim-view');
-        const createdView = document.getElementById('created-view');
         const toSignupBtn = document.getElementById('toSignupBtn');
         const toLoginBtn = document.getElementById('toLoginBtn');
         const openCreateBtn = document.getElementById('openCreateBtn');
-        const openClaimBtn = document.getElementById('openClaimBtn');
         const emptyCreateBtn = document.getElementById('emptyCreateBtn');
-        const cancelCreateBtn = document.getElementById('cancelCreateBtn');
-        const cancelClaimBtn = document.getElementById('cancelClaimBtn');
-        const goDashboardBtn = document.getElementById('goDashboardBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const loginUserId = document.getElementById('loginUserId');
         const loginPassword = document.getElementById('loginPassword');
@@ -443,65 +283,23 @@
         const signupPassword = document.getElementById('signupPassword');
         const signupPassword2 = document.getElementById('signupPassword2');
         const pwMatchMsg = document.getElementById('pwMatchMsg');
-        const formTitle = document.getElementById('formTitle');
-        const submitBtn = document.getElementById('submitBtn');
-        const ownerAddress = document.getElementById('ownerAddress');
-        const heirName = document.getElementById('heirName');
-        const heirAddress = document.getElementById('heirAddress');
-        const heirHelpBtn = document.getElementById('heirHelpBtn');
-        const heirHelpBox = document.getElementById('heirHelpBox');
-        const copyMetaLink = document.getElementById('copyMetaLink');
-        const metaLink = document.getElementById('metaLink');
-        const copyOwnerAddrBtn = document.getElementById('copyOwnerAddrBtn');
-        const emptyState = document.getElementById('empty-state');
-        const listsWrap = document.getElementById('lists-wrap');
-        const walletListOutgoing = document.getElementById('wallet-list-outgoing');
-        const walletListIncoming = document.getElementById('wallet-list-incoming');
-        const tabOutgoing = document.getElementById('tab-outgoing');
-        const tabIncoming = document.getElementById('tab-incoming');
-        const giverAddress = document.getElementById('giverAddress');
-        const myHeirAddress = document.getElementById('myHeirAddress');
-        
+
         // 유틸
         function show(viewEl) {
-          [
-            loginView,
-            signupView,
-            dashView,
-            createView,
-            claimView,
-            createdView,
-          ].forEach(v => v.classList.add('hidden'));
+          [loginView, signupView, dashView, createView].forEach(v => v.classList.add('hidden'));
           viewEl.classList.remove('hidden');
         }
-        function setTabs(active) {
-          tabOutgoing.classList.remove('tab-active');
-          tabIncoming.classList.remove('tab-active');
-          const outWrap = walletListOutgoing.parentElement;
-          const inWrap = walletListIncoming.parentElement;
-          if (active === 'out') {
-            tabOutgoing.classList.add('tab-active');
-            outWrap.classList.remove('hidden');
-            inWrap.classList.add('hidden');
-          } else if (active === 'in') {
-            tabIncoming.classList.add('tab-active');
-            inWrap.classList.remove('hidden');
-            outWrap.classList.add('hidden');
-          } else {
-            outWrap.classList.remove('hidden');
-            inWrap.classList.remove('hidden');
-          }
-        }
-        
-        // 로그인/회원가입
+
+        // 비밀번호 토글
         loginTogglePw.addEventListener('click', () => {
           const showPw = loginPassword.type === 'password';
           loginPassword.type = showPw ? 'text' : 'password';
           loginTogglePw.textContent = showPw ? 'Hide' : 'Show';
         });
+
+        // 회원가입 비밀번호 확인
         function checkMatch() {
-          const p1 = signupPassword.value,
-            p2 = signupPassword2.value;
+          const p1 = signupPassword.value, p2 = signupPassword2.value;
           if (!p1 && !p2) {
             pwMatchMsg.textContent = '';
             pwMatchMsg.className = 'text-xs';
@@ -517,18 +315,18 @@
         }
         signupPassword.addEventListener('input', checkMatch);
         signupPassword2.addEventListener('input', checkMatch);
-        
-        // 회원가입 폼 제출 이벤트
+
+        // 회원가입
         signupView.addEventListener('submit', async (e) => {
           e.preventDefault();
           const userId = signupUserId.value.trim();
           const password = signupPassword.value;
-        
+
           if (!userId || password.length < 8 || password !== signupPassword2.value) {
             alert('입력 정보를 다시 확인해주세요.');
             return;
           }
-        
+
           try {
             const response = await fetch("https://sanmantec-api.vercel.app/api/signup", {
               method: 'POST',
@@ -536,7 +334,7 @@
               body: JSON.stringify({ userId, password }),
             });
             const result = await response.json();
-            
+
             if (response.ok) {
               alert(result.message);
               show(loginView);
@@ -550,13 +348,13 @@
             alert('서버와 연결할 수 없습니다.');
           }
         });
-        
-        // 로그인 폼 제출 이벤트
+
+        // 로그인
         loginView.addEventListener('submit', async (e) => {
           e.preventDefault();
           const userId = loginUserId.value.trim();
           const password = loginPassword.value;
-        
+
           try {
             const response = await fetch("https://sanmantec-api.vercel.app/api/login", {
               method: 'POST',
@@ -564,10 +362,11 @@
               body: JSON.stringify({ userId, password }),
             });
             const result = await response.json();
-            
+
             if (response.ok) {
               alert(result.message);
               show(dashView);
+              window._userId = userId; // 로그인 아이디 보관
             } else {
               alert('로그인 실패: ' + result.message);
             }
@@ -576,28 +375,42 @@
             alert('서버와 연결할 수 없습니다.');
           }
         });
-        
-        // 화면 전환 버튼
+
+        // 화면 전환
         toSignupBtn.addEventListener('click', () => show(signupView));
         toLoginBtn.addEventListener('click', () => show(loginView));
-        if (logoutBtn) {
-          logoutBtn.addEventListener('click', () => show(loginView));
-        }
+        if (logoutBtn) logoutBtn.addEventListener('click', () => { window._userId = null; show(loginView); });
 
-        // 대시보드 내 버튼은 더미로 남겨둠
-        if(openCreateBtn) openCreateBtn.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        if(openClaimBtn) openClaimBtn.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        if(emptyCreateBtn) emptyCreateBtn.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        if(cancelCreateBtn) cancelCreateBtn.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        if(cancelClaimBtn) cancelClaimBtn.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        if(goDashboardBtn) goDashboardBtn.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        if(heirHelpBtn) heirHelpBtn.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        if(copyMetaLink) copyMetaLink.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        if(copyOwnerAddrBtn) copyOwnerAddrBtn.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        if(tabOutgoing) tabOutgoing.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        if(tabIncoming) tabIncoming.addEventListener('click', () => { alert("이 기능은 구현되지 않았습니다."); });
-        
-        // 초기 화면
+        // (2) 버튼 텍스트 변경
+        if (emptyCreateBtn) emptyCreateBtn.textContent = "지갑만들기";
+
+        // (1) 상단 버튼 → 백엔드 연결
+        if (openCreateBtn) openCreateBtn.addEventListener('click', async () => {
+          const userId = window._userId || (loginUserId && loginUserId.value.trim());
+          if (!userId) {
+            alert('로그인 후 이용해주세요.');
+            show(loginView);
+            return;
+          }
+
+          try {
+            const response = await fetch("https://sanmantec-api.vercel.app/api/wallet/create", {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result?.message || `요청 실패(${response.status})`);
+
+            alert((result.message || '지갑 생성 성공') + (result.address ? `\n주소: ${result.address}` : ''));
+            show(dashView);
+          } catch (err) {
+            console.error(err);
+            alert('지갑 생성 실패: ' + err.message);
+          }
+        });
+
+        // 초기화면
         show(loginView);
       });
     </script>
