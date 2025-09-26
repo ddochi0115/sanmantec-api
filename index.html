@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Sanmantec Inheritance Service</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 브라우저에서 지갑 생성/암호화용 ethers -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
     <style>
       :root { --radius: 12px; }
       html, body { height: 100%; }
@@ -24,17 +22,6 @@
         display: inline-block;
       }
     </style>
-
-    <script>
-      // ----- API BASE 오버라이드(테스트 편의) -----
-      // 기본은 프로덕션. ?api=프리뷰URL 로 한 번 열면 localStorage에 저장되어 이후에도 유지.
-      // 원복은 ?clearApi=1
-      const q = new URLSearchParams(location.search);
-      if (q.get('api')) localStorage.setItem('API_BASE_OVERRIDE', q.get('api'));
-      if (q.get('clearApi')) localStorage.removeItem('API_BASE_OVERRIDE');
-      const API_BASE = localStorage.getItem('API_BASE_OVERRIDE') || "https://sanmantec-api.vercel.app";
-      // --------------------------------------------
-    </script>
   </head>
   <body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center p-6">
     <div class="w-full max-w-3xl">
@@ -108,19 +95,6 @@
                   class="h-10 px-4 rounded-xl border border-indigo-500 text-indigo-600 bg-white font-medium hover:bg-indigo-50">지갑 상속받기</button>
                 <button id="logoutBtn"
                   class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50">로그아웃</button>
-<<<<<<< HEAD
-=======
-
-                <!-- keystore 다운로드 / 개인키 보기 -->
-                <button id="downloadKeystoreBtn"
-                  class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50 hidden">
-                  keystore.json 다운로드
-                </button>
-                <button id="revealPrivKeyBtn"
-                  class="h-10 px-4 rounded-xl border border-rose-300 text-rose-600 bg-white font-medium hover:bg-rose-50 hidden">
-                  개인키 보기
-                </button>
->>>>>>> Huiseok
               </div>
             </div>
           </div>
@@ -164,13 +138,6 @@
         const pwMatchMsg = document.getElementById('pwMatchMsg');
         const walletListOutgoing = document.getElementById('wallet-list-outgoing');
         const emptyState = document.getElementById('empty-state');
-<<<<<<< HEAD
-=======
-
-        const downloadKeystoreBtn = document.getElementById('downloadKeystoreBtn');
-        const revealPrivKeyBtn = document.getElementById('revealPrivKeyBtn');
-        let _lastKeystoreJson = null; // 브라우저 메모리 보관
->>>>>>> Huiseok
 
         function show(viewEl) {
           [loginView, signupView, dashView].forEach(v => v.classList.add('hidden'));
@@ -202,26 +169,14 @@
             alert('입력 정보를 다시 확인해주세요.'); return;
           }
           try {
-<<<<<<< HEAD
             const response = await fetch("https://sanmantec-api.vercel.app/api/signup", {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
-=======
-            const response = await fetch(`${API_BASE}/api/signup`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
->>>>>>> Huiseok
               body: JSON.stringify({ userId, password }),
             });
             const result = await response.json();
             if (response.ok) { alert(result.message); show(loginView); }
             else alert('회원가입 실패: ' + result.message);
-<<<<<<< HEAD
           } catch { alert('서버와 연결할 수 없습니다.'); }
-=======
-          } catch {
-            alert('서버와 연결할 수 없습니다.');
-          }
->>>>>>> Huiseok
         });
 
         // 로그인
@@ -230,14 +185,8 @@
           const userId = loginUserId.value.trim();
           const password = loginPassword.value;
           try {
-<<<<<<< HEAD
             const response = await fetch("https://sanmantec-api.vercel.app/api/login", {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
-=======
-            const response = await fetch(`${API_BASE}/api/login`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
->>>>>>> Huiseok
               body: JSON.stringify({ userId, password }),
             });
             const result = await response.json();
@@ -246,7 +195,6 @@
               window._userId = userId;
               show(dashView);
             } else alert('로그인 실패: ' + result.message);
-<<<<<<< HEAD
           } catch { alert('서버와 연결할 수 없습니다.'); }
         });
 
@@ -255,23 +203,10 @@
         openClaimBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
 
         // 지갑만들기 버튼 → API 연결
-=======
-          } catch {
-            alert('서버와 연결할 수 없습니다.');
-          }
-        });
-
-        // 더미 버튼
-        openCreateBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
-        openClaimBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
-
-        // 지갑 만들기 (브라우저 생성 → keystore 암호화 → 서버 저장)
->>>>>>> Huiseok
         emptyCreateBtn.addEventListener('click', async () => {
           const userId = window._userId;
           if (!userId) { alert("로그인 후 이용해주세요."); show(loginView); return; }
           try {
-<<<<<<< HEAD
             const response = await fetch("https://sanmantec-api.vercel.app/api/wallet/create", {
               method: "POST", headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ userId }),
@@ -279,23 +214,6 @@
             const result = await response.json();
             if (!response.ok) throw new Error(result.message || "지갑 생성 실패");
             alert("지갑 생성 성공!\n주소: " + result.address);
-=======
-            const wallet = ethers.Wallet.createRandom();
-            const passphrase = prompt("지갑 복구용 패스프레이즈를 설정하세요(잊으면 복구 불가)");
-            if (!passphrase) { alert("취소되었습니다."); return; }
-            const keystoreJson = await wallet.encrypt(passphrase);
-
-            const response = await fetch(`${API_BASE}/api/wallet/create`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ userId, address: wallet.address, keystore: keystoreJson }),
-            });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || "지갑 생성 실패");
-
-            alert("지갑 생성 성공!\n주소: " + result.address + "\n(keystore는 서버에 저장, 패스프레이즈는 꼭 기억!)");
-
->>>>>>> Huiseok
             emptyState.classList.add("hidden");
             const card = document.createElement("div");
             card.className = "p-4 rounded-xl border border-slate-300 bg-white shadow";
@@ -303,7 +221,6 @@
               <p class="text-sm text-slate-600">주소</p>
               <p class="font-mono break-all text-indigo-600">${result.address}</p>`;
             walletListOutgoing.appendChild(card);
-<<<<<<< HEAD
           } catch (err) {
             alert("지갑 생성 실패: " + err.message);
           }
@@ -311,73 +228,6 @@
 
         logoutBtn.addEventListener('click', () => { window._userId = null; show(loginView); });
 
-=======
-
-            _lastKeystoreJson = keystoreJson;
-            downloadKeystoreBtn.classList.remove("hidden");
-            revealPrivKeyBtn.classList.remove("hidden");
-          } catch (err) {
-            alert("지갑 생성 실패: " + (err.message || err));
-          }
-        });
-
-        // keystore.json 다운로드
-        downloadKeystoreBtn.addEventListener('click', () => {
-          if (!_lastKeystoreJson) {
-            alert("저장된 keystore가 없습니다. 먼저 지갑을 생성하세요.");
-            return;
-          }
-          const blob = new Blob([_lastKeystoreJson], { type: "application/json" });
-          const url  = URL.createObjectURL(blob);
-          const a    = document.createElement('a');
-          a.href = url;
-          a.download = `keystore-${Date.now()}.json`;
-          a.click();
-          URL.revokeObjectURL(url);
-          alert("keystore.json이 다운로드되었습니다. 패스프레이즈는 별도 안전 보관하세요.");
-        });
-
-        // 개인키 보기(패스프레이즈로 복호화)
-        revealPrivKeyBtn.addEventListener('click', async () => {
-          try {
-            if (!_lastKeystoreJson) {
-              alert("keystore가 메모리에 없습니다. 먼저 지갑을 생성하세요.");
-              return;
-            }
-            const pass = prompt("패스프레이즈를 입력하세요(지갑 생성 시 설정한 값)");
-            if (!pass) return;
-
-            const wallet = await ethers.Wallet.fromEncryptedJson(_lastKeystoreJson, pass);
-            const pk = wallet.privateKey;
-
-            const box = document.createElement('div');
-            box.className = "mt-3 p-3 rounded-xl border border-rose-300 bg-rose-50 text-rose-800";
-            box.innerHTML = `
-              <div class="font-semibold mb-1">⚠️ 개인키(30초 후 자동 숨김)</div>
-              <div class="font-mono break-all text-sm">${pk}</div>
-              <button class="mt-2 px-3 h-8 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs" id="copyPkBtn">
-                복사
-              </button>
-            `;
-            document.getElementById('lists-wrap').prepend(box);
-
-            box.querySelector('#copyPkBtn').addEventListener('click', async () => {
-              try {
-                await navigator.clipboard.writeText(pk);
-                alert("개인키가 복사되었습니다. 안전한 곳에 보관하세요.");
-              } catch {
-                alert("복사 실패. 수동으로 복사하세요.");
-              }
-            });
-
-            setTimeout(() => box.remove(), 30000);
-          } catch {
-            alert("복호화 실패: 패스프레이즈가 올바른지 확인하세요.");
-          }
-        });
-
-        logoutBtn.addEventListener('click', () => { window._userId = null; show(loginView); });
->>>>>>> Huiseok
         show(loginView);
       });
     </script>
