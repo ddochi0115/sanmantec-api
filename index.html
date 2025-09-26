@@ -118,25 +118,45 @@
       document.addEventListener('DOMContentLoaded', async () => {
         const API = "https://sanmantec-api.vercel.app";
 
-        /* ---------------------- ▼ 추가: 잔액 조회 유틸 (Sepolia) ▼ ---------------------- */
-        // 외부 RPC는 서버(fetch API)와 무관하게 try/catch로만 동작시켜 실패해도 앱 흐름에 영향 주지 않음
-        const RPCS = { sepolia: "https://rpc.ankr.com/eth_sepolia" }; // HTTPS 공개 RPC
-        function getProvider() {
-          try { return new ethers.JsonRpcProvider(RPCS.sepolia); }
-          catch { return null; }
+        /* ---------------------- ▼ 교체: 잔액 조회 유틸 (Sepolia, 폴백 지원) ▼ ---------------------- */
+        // ※ 기존 RPCS/getProvider/fetchAndRenderBalance 블록을 이 블록으로 "교체"
+        const SEPOLIA_RPCS = [
+          "https://eth-sepolia.public.blastapi.io",
+          "https://ethereum-sepolia.blockpi.network/v1/rpc/public",
+          "https://rpc.ankr.com/eth_sepolia"
+          // "https://sepolia.infura.io/v3/<YOUR_INFURA_KEY>", // 키 있으면 맨 위로 올리세요
+        ];
+
+        let _cachedProvider = null;
+
+        async function getProvider() {
+          if (_cachedProvider) return _cachedProvider;
+          for (const url of SEPOLIA_RPCS) {
+            try {
+              const prov = new ethers.JsonRpcProvider(url);
+              const ok = await Promise.race([
+                prov.getBlockNumber(),
+                new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 3000))
+              ]);
+              if (typeof ok === "number") { _cachedProvider = prov; return prov; }
+            } catch (e) {
+              console.warn("[RPC 실패]", url, e?.message || e);
+            }
+          }
+          throw new Error("모든 Sepolia RPC 연결 실패");
         }
+
         async function fetchAndRenderBalance(address, targetEl) {
           try {
-            const provider = getProvider();
-            if (!provider) throw new Error("no provider");
+            const provider = await getProvider();
             const bal = await provider.getBalance(address);
             targetEl.textContent = `${ethers.formatEther(bal)} ETH`;
-          } catch {
-            // 실패해도 조용히 표시만 바꾸고 끝 — 서버 통신(fetch API)엔 영향 없음
+          } catch (e) {
+            console.warn("[잔액조회 실패]", e?.message || e);
             targetEl.textContent = "조회 실패";
           }
         }
-        /* ---------------------- ▲ 추가: 잔액 조회 유틸 (Sepolia) ▲ ---------------------- */
+        /* ---------------------- ▲ 교체: 잔액 조회 유틸 (Sepolia, 폴백 지원) ▲ ---------------------- */
 
         // Views & Elements
         const loginView = document.getElementById('login-view');
@@ -201,13 +221,12 @@
             <p class="text-sm text-slate-600">주소</p>
             <p class="font-mono break-all text-indigo-600">${address}</p>
 
-            <!-- ▼ 추가: 잔액 표시 줄 -->
+            <!-- 잔액 표시 -->
             <div class="mt-2 text-sm text-slate-700">
               <span class="text-slate-500">잔액:</span>
               <span data-balance-el data-address="${address}">불러오는 중...</span>
               <button class="ml-2 text-xs underline balance-refresh">새로고침</button>
             </div>
-            <!-- ▲ 추가: 잔액 표시 줄 -->
 
             <div class="mt-3 flex flex-wrap gap-2">
               <button class="reveal-btn h-9 px-3 rounded-lg border border-rose-300 text-rose-600 bg-white text-sm hover:bg-rose-50">개인키 보기</button>
@@ -216,7 +235,7 @@
             </div>
           `;
 
-          // ✅ 최초 잔액 조회 (서버 통신과 분리, 실패해도 앱 흐름 영향 없음)
+          // ✅ 최초 잔액 조회
           const balEl = card.querySelector("[data-balance-el]");
           fetchAndRenderBalance(address, balEl);
 
@@ -336,7 +355,7 @@
           e.preventDefault();
           const userId = loginUserId.value.trim();
           const password = loginPassword.value;
-          try {
+        try {
             const response = await fetch(`${API}/api/login`, {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ userId, password }),
@@ -389,7 +408,7 @@
           }
         }
 
-        // ✅ 버튼 연결 (요청사항에 따라 '상속지갑 만들기'만 미구현 알림)
+        // ✅ 버튼 연결 (요청사항: '상속지갑 만들기'만 미구현 알림)
         openCreateBtn.addEventListener('click', () => {
           alert("이 기능은 구현되지 않았습니다.");
         });
