@@ -81,7 +81,7 @@
             <div class="flex items-center justify-between gap-4">
               <h2 class="text-xl font-semibold tracking-tight">내 상속지갑</h2>
               <div class="flex gap-2">
-                <!-- ✅ 이제 여기 버튼으로도 언제든 새 지갑 생성 가능 -->
+                <!-- ✅ 지갑이 있든 없든 항상 표시 -->
                 <button id="openCreateBtn"
                   class="h-10 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700">상속지갑 만들기</button>
                 <button id="openClaimBtn"
@@ -93,7 +93,7 @@
           </div>
 
           <div id="empty-state"
-            class="rounded-XL border border-dashed border-slate-300 p-8 text-center text-slate-600">
+            class="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600">
             아직 생성된 상속지갑이 없어요.
             <div class="mt-4">
               <button id="emptyCreateBtn"
@@ -102,10 +102,13 @@
           </div>
 
           <div id="lists-wrap" class="mt-4 space-y-6">
-            <div>
+            <div class="flex items-center justify-between">
               <h3 class="text-sm font-medium text-slate-700 mb-2">내 지갑</h3>
-              <div id="wallet-list-outgoing" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+              <!-- ✅ 리스트 상단에도 '새 지갑 추가' 버튼 추가 (이미 지갑이 있는 사용자용) -->
+              <button id="listCreateBtn"
+                class="h-9 px-3 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">새 지갑 추가</button>
             </div>
+            <div id="wallet-list-outgoing" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
           </div>
         </section>
       </div>
@@ -114,6 +117,8 @@
     <script>
       document.addEventListener('DOMContentLoaded', async () => {
         const API = "https://sanmantec-api.vercel.app";
+
+        // Views & Elements
         const loginView = document.getElementById('login-view');
         const signupView = document.getElementById('signup-view');
         const dashView = document.getElementById('dashboard-view');
@@ -122,6 +127,7 @@
         const openCreateBtn = document.getElementById('openCreateBtn');
         const openClaimBtn = document.getElementById('openClaimBtn');
         const emptyCreateBtn = document.getElementById('emptyCreateBtn');
+        const listCreateBtn = document.getElementById('listCreateBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const loginUserId = document.getElementById('loginUserId');
         const loginPassword = document.getElementById('loginPassword');
@@ -138,12 +144,12 @@
           viewEl.classList.remove('hidden');
         }
 
-        // Passphrase 검증: 최소 16 "단어" + 특수문자 포함
+        // 🔒 패스프레이즈 정책: "최소 16자(문자 수) 이상" + "특수문자 1개 이상"
         function validatePassphrase(pp) {
           if (!pp) return false;
-          const words = pp.trim().split(/\s+/).filter(Boolean);
+          const hasLength = pp.trim().length >= 16;
           const hasSpecial = /[^A-Za-z0-9\s]/.test(pp);
-          return words.length >= 16 && hasSpecial;
+          return hasLength && hasSpecial;
         }
 
         async function loadWallets(userId) {
@@ -181,10 +187,10 @@
             </div>
           `;
 
-          // 개인키 보기
+          // 개인키 보기 (패스프레이즈 16 "자")
           card.querySelector(".reveal-btn").addEventListener("click", async () => {
             try {
-              const pass = prompt("패스프레이즈를 입력하세요(최소 16단어 + 특수문자 1개 이상)");
+              const pass = prompt("패스프레이즈를 입력하세요(최소 16자 + 특수문자 1개 이상)");
               if (!pass) return;
               const w = await ethers.Wallet.fromEncryptedJson(keystoreJson, pass);
               const pk = w.privateKey;
@@ -206,10 +212,10 @@
             }
           });
 
-          // keystore 다운로드
+          // keystore 다운로드 (검증용으로 복호화 시도)
           card.querySelector(".download-btn").addEventListener("click", async () => {
             try {
-              const pass = prompt("패스프레이즈를 입력하세요(다운로드 전 확인)");
+              const pass = prompt("패스프레이즈를 입력하세요(다운로드 전 확인: 최소 16자 + 특수문자 1개 이상)");
               if (!pass) return;
               await ethers.Wallet.fromEncryptedJson(keystoreJson, pass); // 검증
               const blob = new Blob([keystoreJson], { type: "application/json" });
@@ -307,19 +313,19 @@
           } catch { alert('서버와 연결할 수 없습니다.'); }
         });
 
-        // 상속지갑 만들기/지갑 상속받기 (더미)
+        // 상속받기 (더미)
         openClaimBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
 
-        // ✅ 공통 지갑 생성 플로우 (상단/빈상태 둘 다 사용)
+        // ✅ 공통 지갑 생성 플로우 (상단/빈상태/리스트 상단 버튼 모두 연결)
         async function doCreateWalletFlow() {
           const userId = window._userId;
           if (!userId) { alert("로그인 후 이용해주세요."); show(loginView); return; }
 
-          // 패스프레이즈 입력 & 정책 검증 (최소 16단어 + 특수문자)
-          let passphrase = prompt("지갑 복구용 패스프레이즈를 설정하세요.\n(최소 16단어 + 특수문자 1개 이상)");
+          // 패스프레이즈 입력 & 정책 검증 (최소 16자 + 특수문자)
+          let passphrase = prompt("지갑 복구용 패스프레이즈를 설정하세요.\n(최소 16자 + 특수문자 1개 이상)");
           while (passphrase !== null && !validatePassphrase(passphrase)) {
-            alert("형식을 확인하세요: 최소 16단어 + 특수문자 1개 이상 포함해야 합니다.");
-            passphrase = prompt("지갑 복구용 패스프레이즈를 다시 입력하세요.\n(최소 16단어 + 특수문자 1개 이상)");
+            alert("형식을 확인하세요: 최소 16자 + 특수문자 1개 이상 포함해야 합니다.");
+            passphrase = prompt("지갑 복구용 패스프레이즈를 다시 입력하세요.\n(최소 16자 + 특수문자 1개 이상)");
           }
           if (passphrase === null) return; // 취소
 
@@ -344,10 +350,10 @@
           }
         }
 
-        // ✅ 상단 버튼도 지갑 생성 가능
+        // 버튼들 연결
         openCreateBtn.addEventListener('click', doCreateWalletFlow);
-        // ✅ 빈 상태 버튼도 동일 플로우
         emptyCreateBtn.addEventListener('click', doCreateWalletFlow);
+        listCreateBtn.addEventListener('click', doCreateWalletFlow);
 
         // 로그아웃
         logoutBtn.addEventListener('click', () => {
@@ -366,6 +372,10 @@
           show(dashView);
           return;
         }
+
+        // 네비게이션
+        toSignupBtn.addEventListener('click', () => show(signupView));
+        toLoginBtn.addEventListener('click', () => show(loginView));
 
         show(loginView);
       });

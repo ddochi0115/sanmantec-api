@@ -25,7 +25,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// 헬스체크: GET /api
+// 헬스체크
 app.get("/api", (req, res) => {
   res.json({ ok: true, message: "API is working!" });
 });
@@ -79,7 +79,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// (레거시) 서버에서 키 생성 API — 이제 프론트에서 호출 안 함
+// (레거시) 서버에서 키 생성 API — 비권장 (프론트 생성 권장)
 app.post("/api/wallet/create", async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
@@ -87,6 +87,7 @@ app.post("/api/wallet/create", async (req, res) => {
   }
   try {
     const wallet = ethers.Wallet.createRandom();
+    // ⚠️ 보안상 private_key 저장은 지양. (레거시 예시 유지)
     await pool.query(
       "INSERT INTO wallets (user_id, address, private_key) VALUES ($1,$2,$3)",
       [userId, wallet.address, wallet.privateKey]
@@ -148,7 +149,7 @@ app.post("/api/wallet/delete", async (req, res) => {
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) return res.status(401).json({ message: "인증 실패" });
 
-    const d = await pool.query(
+    await pool.query(
       "DELETE FROM wallets WHERE user_id=$1 AND address=$2",
       [userId, address]
     );
@@ -159,5 +160,9 @@ app.post("/api/wallet/delete", async (req, res) => {
   }
 });
 
-// Vercel 서버리스 함수 핸들러
+// Vercel 서버리스 함수 핸들러 (Vercel 사용 시)
 module.exports = (req, res) => app(req, res);
+
+// 로컬 서버로도 실행하고 싶다면 아래 주석 해제
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => console.log(`Server on http://localhost:${PORT}`));
