@@ -2,12 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
-const { ethers } = require("ethers"); 
+const { ethers } = require("ethers"); // 기존 그대로
 
 const app = express();
 app.use(express.json());
 
-// CORS: 프론트 도메인 허용
+// CORS: 프론트 도메인 허용 (기존 그대로)
 app.use(
   cors({
     origin: [
@@ -30,7 +30,7 @@ app.get("/api", (req, res) => {
   res.json({ ok: true, message: "API is working!" });
 });
 
-// 회원가입: POST /api/signup
+// 회원가입: POST /api/signup (기존 그대로)
 app.post("/api/signup", async (req, res) => {
   const { userId, password } = req.body;
   if (!userId || !password) {
@@ -52,7 +52,7 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
-// 로그인: POST /api/login
+// 로그인: POST /api/login (기존 그대로)
 app.post("/api/login", async (req, res) => {
   const { userId, password } = req.body;
   try {
@@ -79,7 +79,8 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// 지갑 생성
+// (참고) 예전 서버 생성 API는 그대로 두지만, 이제 프론트에서 호출하지 않게 바꿈.
+// 지갑 생성(서버 생성; private_key 사용) - 더 이상 사용하지 않지만 레거시 호환용
 app.post("/api/wallet/create", async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
@@ -88,6 +89,7 @@ app.post("/api/wallet/create", async (req, res) => {
 
   try {
     const wallet = ethers.Wallet.createRandom();
+    // ❗ private_key 컬럼을 삭제했다면 이 API는 실패합니다. (프론트가 호출하지 않으니 무시)
     await pool.query(
       "INSERT INTO wallets (user_id, address, private_key) VALUES ($1,$2,$3)",
       [userId, wallet.address, wallet.privateKey]
@@ -99,48 +101,30 @@ app.post("/api/wallet/create", async (req, res) => {
   }
 });
 
-/* ===================== ✅ 추가: 개인키 내보내기 API ===================== */
+/* ===================== ✅ 추가: 클라이언트 생성 지갑 저장 ===================== */
 /**
- * POST /api/wallet/export
- * body: { userId, password, address }
- * 1) 사용자 비밀번호 검증
- * 2) 해당 주소가 그 사용자의 지갑인지 확인
- * 3) DB에 저장된 private_key를 반환
+ * POST /api/wallet/save
+ * body: { userId, address, keystore }
+ * - 서버는 private_key를 받지 않음/보관하지 않음
+ * - DB에는 address + keystore_json만 저장
  */
-app.post("/api/wallet/export", async (req, res) => {
-  const { userId, password, address } = req.body;
-  if (!userId || !password || !address) {
-    return res.status(400).json({ message: "userId, password, address 필요" });
+app.post("/api/wallet/save", async (req, res) => {
+  const { userId, address, keystore } = req.body;
+  if (!userId || !address || !keystore) {
+    return res.status(400).json({ message: "userId, address, keystore 필요" });
   }
   try {
-    // 사용자 비번 검증
-    const u = await pool.query(
-      "SELECT password_hash FROM users WHERE user_id=$1",
-      [userId]
+    await pool.query(
+      "INSERT INTO wallets (user_id, address, keystore_json) VALUES ($1,$2,$3)",
+      [userId, address, keystore]
     );
-    const user = u.rows[0];
-    if (!user) return res.status(401).json({ message: "인증 실패" });
-    const ok = await bcrypt.compare(password, user.password_hash);
-    if (!ok) return res.status(401).json({ message: "인증 실패" });
-
-    // 내 지갑인지 + 개인키 존재 확인
-    const w = await pool.query(
-      "SELECT private_key FROM wallets WHERE user_id=$1 AND address=$2",
-      [userId, address]
-    );
-    const row = w.rows[0];
-    if (!row || !row.private_key) {
-      return res.status(404).json({ message: "해당 지갑이 없거나 내보낼 키가 없습니다." });
-    }
-
-    // 최소한으로 반환
-    res.json({ privateKey: row.private_key });
+    res.json({ message: "지갑 저장 성공", address });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "개인키 내보내기 실패" });
+    res.status(500).json({ message: "지갑 저장 실패" });
   }
 });
-/* ===================================================================== */
+/* ============================================================================ */
 
 // Vercel 서버리스 함수 핸들러
 module.exports = (req, res) => app(req, res);
