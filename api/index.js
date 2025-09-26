@@ -79,7 +79,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// 지갑 생성
+// 지갑 생성 (기존 로직 유지: 서버 생성/저장)
 app.post("/api/wallet/create", async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
@@ -98,6 +98,28 @@ app.post("/api/wallet/create", async (req, res) => {
     res.status(500).json({ message: "지갑 생성 실패" });
   }
 });
+
+/** -------------------- ✅ 추가: 보안 저장 엔드포인트 -------------------- **
+ * 클라이언트에서 생성/암호화한 keystore만 저장
+ * body: { userId, address, keystore }
+ */
+app.post("/api/wallet/save", async (req, res) => {
+  const { userId, address, keystore } = req.body;
+  if (!userId || !address || !keystore) {
+    return res.status(400).json({ message: "userId, address, keystore 필요" });
+  }
+  try {
+    await pool.query(
+      "INSERT INTO wallets (user_id, address, keystore_json) VALUES ($1,$2,$3)",
+      [userId, address, keystore]
+    );
+    res.json({ message: "지갑 저장 성공", address });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "지갑 저장 실패" });
+  }
+});
+/** --------------------------------------------------------------------- */
 
 // Vercel 서버리스 함수 핸들러
 module.exports = (req, res) => app(req, res);
