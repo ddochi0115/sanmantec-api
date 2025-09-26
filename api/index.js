@@ -116,5 +116,24 @@ app.post("/api/wallet/save", async (req, res) => {
   }
 });
 
+/* ✅ 추가: 지갑 목록 API (재로그인/새로고침 시 카드 복원) */
+app.get("/api/wallets/:userId", async (req, res) => {
+  const { userId } = req.params;
+  if (!userId) return res.status(400).json({ message: "userId 필요" });
+  try {
+    const result = await pool.query(
+      `SELECT address, keystore_json
+         FROM wallets
+        WHERE user_id = $1
+        ORDER BY id DESC`,
+      [userId]
+    );
+    res.json({ wallets: result.rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "지갑 목록 조회 실패" });
+  }
+});
+
 // Vercel 서버리스 함수 핸들러
 module.exports = (req, res) => app(req, res);
