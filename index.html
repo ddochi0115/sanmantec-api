@@ -5,14 +5,22 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Sanmantec Inheritance Service</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- ✅ 추가: 브라우저에서 키 생성/암호화용 -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
     <style>
       :root { --radius: 12px; }
       html, body { height: 100%; }
       .hidden { display: none; }
-      .tab-active { background: rgb(238 242 255); color: rgb(55 48 163); border-color: rgb(199 210 254); }
-      .chip { font-size: 12px; padding: 2px 8px; border-radius: 9999px; border-width: 1px; display: inline-block; }
+      .tab-active {
+        background: rgb(238 242 255);
+        color: rgb(55 48 163);
+        border-color: rgb(199 210 254);
+      }
+      .chip {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        border-width: 1px;
+        display: inline-block;
+      }
     </style>
   </head>
   <body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center p-6">
@@ -87,22 +95,6 @@
                   class="h-10 px-4 rounded-xl border border-indigo-500 text-indigo-600 bg-white font-medium hover:bg-indigo-50">지갑 상속받기</button>
                 <button id="logoutBtn"
                   class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50">로그아웃</button>
-
-                <!-- ✅ 추가: 안전하게(클라이언트) 지갑 만들기 -->
-                <button id="secureCreateBtn"
-                  class="h-10 px-4 rounded-xl border border-indigo-500 text-indigo-600 bg-white font-medium hover:bg-indigo-50">
-                  안전하게 지갑 만들기(클라이언트)
-                </button>
-
-                <!-- ✅ 추가: keystore 다운로드 / 개인키 보기 (처음엔 숨김) -->
-                <button id="downloadKeystoreBtn"
-                  class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50 hidden">
-                  keystore.json 다운로드
-                </button>
-                <button id="revealPrivKeyBtn"
-                  class="h-10 px-4 rounded-xl border border-rose-300 text-rose-600 bg-white font-medium hover:bg-rose-50 hidden">
-                  개인키 보기
-                </button>
               </div>
             </div>
           </div>
@@ -127,7 +119,8 @@
     </div>
 
     <script>
-      document.addEventListener('DOMContentLoaded', () => {
+      // ✅ 변경: async로 만들어서 초기 로딩에 await 사용
+      document.addEventListener('DOMContentLoaded', async () => {
         const loginView = document.getElementById('login-view');
         const signupView = document.getElementById('signup-view');
         const dashView = document.getElementById('dashboard-view');
@@ -147,15 +140,36 @@
         const walletListOutgoing = document.getElementById('wallet-list-outgoing');
         const emptyState = document.getElementById('empty-state');
 
-        // ✅ 추가: 새 버튼/상태
-        const secureCreateBtn = document.getElementById('secureCreateBtn');
-        const downloadKeystoreBtn = document.getElementById('downloadKeystoreBtn');
-        const revealPrivKeyBtn = document.getElementById('revealPrivKeyBtn');
-        let _lastKeystoreJson = null;
-
         function show(viewEl) {
           [loginView, signupView, dashView].forEach(v => v.classList.add('hidden'));
           viewEl.classList.remove('hidden');
+        }
+
+        // ✅ 추가: 지갑 목록 로더/렌더러
+        async function loadWallets(userId) {
+          try {
+            const res = await fetch(`https://sanmantec-api.vercel.app/api/wallets/${encodeURIComponent(userId)}`);
+            const data = await res.json();
+            renderWallets(data.wallets || []);
+          } catch {
+            renderWallets([]);
+          }
+        }
+        function renderWallets(list) {
+          walletListOutgoing.innerHTML = "";
+          if (!list || list.length === 0) {
+            emptyState.classList.remove("hidden");
+            return;
+          }
+          emptyState.classList.add("hidden");
+          for (const w of list) {
+            const card = document.createElement("div");
+            card.className = "p-4 rounded-xl border border-slate-300 bg-white shadow";
+            card.innerHTML = `
+              <p class="text-sm text-slate-600">주소</p>
+              <p class="font-mono break-all text-indigo-600">${w.address}</p>`;
+            walletListOutgoing.appendChild(card);
+          }
         }
 
         // 비밀번호 토글
@@ -207,6 +221,11 @@
             if (response.ok) {
               alert(result.message);
               window._userId = userId;
+
+              /* ✅ 추가: 사용자 저장 + 목록 불러오기 */
+              localStorage.setItem("userId", userId);
+              await loadWallets(userId);
+
               show(dashView);
             } else alert('로그인 실패: ' + result.message);
           } catch { alert('서버와 연결할 수 없습니다.'); }
@@ -216,7 +235,7 @@
         openCreateBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
         openClaimBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
 
-        // 지갑만들기 버튼 → (기존 로직, 서버 생성) 그대로 유지
+        // 지갑만들기 버튼 → API 연결 (기존 그대로)
         emptyCreateBtn.addEventListener('click', async () => {
           const userId = window._userId;
           if (!userId) { alert("로그인 후 이용해주세요."); show(loginView); return; }
@@ -235,97 +254,32 @@
               <p class="text-sm text-slate-600">주소</p>
               <p class="font-mono break-all text-indigo-600">${result.address}</p>`;
             walletListOutgoing.appendChild(card);
+
+            // (선택) 서버와 동기화하고 싶으면 아래 주석 해제
+            // await loadWallets(userId);
           } catch (err) {
             alert("지갑 생성 실패: " + err.message);
           }
         });
 
-        /** ✅ 추가: 안전하게(클라이언트 생성) 지갑 만들기 */
-        secureCreateBtn.addEventListener('click', async () => {
-          const userId = window._userId;
-          if (!userId) { alert("로그인 후 이용해주세요."); show(loginView); return; }
-          try {
-            // 1) 브라우저에서 생성
-            const wallet = ethers.Wallet.createRandom();
-
-            // 2) 패스프레이즈로 keystore 암호화
-            const passphrase = prompt("지갑 복구용 패스프레이즈를 설정하세요(잊으면 복구 불가)");
-            if (!passphrase) { alert("취소되었습니다."); return; }
-            const keystoreJson = await wallet.encrypt(passphrase);
-
-            // 3) 서버에는 address + keystore만 저장
-            const response = await fetch("https://sanmantec-api.vercel.app/api/wallet/save", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ userId, address: wallet.address, keystore: keystoreJson }),
-            });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || "지갑 저장 실패");
-
-            alert("지갑 생성/저장 성공!\n주소: " + result.address + "\n(keystore는 서버에 저장, 패스프레이즈는 꼭 기억!)");
-
-            emptyState.classList.add("hidden");
-            const card = document.createElement("div");
-            card.className = "p-4 rounded-xl border border-slate-300 bg-white shadow";
-            card.innerHTML = `
-              <p class="text-sm text-slate-600">주소</p>
-              <p class="font-mono break-all text-indigo-600">${result.address}</p>`;
-            walletListOutgoing.appendChild(card);
-
-            _lastKeystoreJson = keystoreJson;
-            downloadKeystoreBtn.classList.remove("hidden");
-            revealPrivKeyBtn.classList.remove("hidden");
-          } catch (err) {
-            alert("지갑 생성 실패: " + (err.message || err));
-          }
+        // 로그아웃 (저장 제거 + UI 리셋)
+        logoutBtn.addEventListener('click', () => {
+          window._userId = null;
+          localStorage.removeItem("userId");     // ✅ 추가
+          walletListOutgoing.innerHTML = "";     // ✅ 추가(선택)
+          emptyState.classList.remove("hidden"); // ✅ 추가(선택)
+          show(loginView);
         });
 
-        /** ✅ 추가: keystore.json 다운로드 */
-        downloadKeystoreBtn.addEventListener('click', () => {
-          if (!_lastKeystoreJson) { alert("저장된 keystore가 없습니다."); return; }
-          const blob = new Blob([_lastKeystoreJson], { type: "application/json" });
-          const url  = URL.createObjectURL(blob);
-          const a    = document.createElement('a');
-          a.href = url;
-          a.download = `keystore-${Date.now()}.json`;
-          a.click();
-          URL.revokeObjectURL(url);
-          alert("keystore.json이 다운로드되었습니다. 패스프레이즈는 별도 안전 보관하세요.");
-        });
+        /* ✅ 추가: 자동 로그인 복원 */
+        const savedUser = localStorage.getItem("userId");
+        if (savedUser) {
+          window._userId = savedUser;
+          await loadWallets(savedUser);
+          show(dashView);
+          return;
+        }
 
-        /** ✅ 추가: 패스프레이즈로 복호화해 개인키 보기(1회성 표시) */
-        revealPrivKeyBtn.addEventListener('click', async () => {
-          try {
-            if (!_lastKeystoreJson) { alert("keystore가 메모리에 없습니다."); return; }
-            const pass = prompt("패스프레이즈를 입력하세요(지갑 생성 시 설정한 값)");
-            if (!pass) return;
-
-            const wallet = await ethers.Wallet.fromEncryptedJson(_lastKeystoreJson, pass);
-            const pk = wallet.privateKey;
-
-            const box = document.createElement('div');
-            box.className = "mt-3 p-3 rounded-xl border border-rose-300 bg-rose-50 text-rose-800";
-            box.innerHTML = `
-              <div class="font-semibold mb-1">⚠️ 개인키(30초 후 자동 숨김)</div>
-              <div class="font-mono break-all text-sm">${pk}</div>
-              <button class="mt-2 px-3 h-8 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs" id="copyPkBtn">
-                복사
-              </button>
-            `;
-            document.getElementById('lists-wrap').prepend(box);
-
-            box.querySelector('#copyPkBtn').addEventListener('click', async () => {
-              try { await navigator.clipboard.writeText(pk); alert("개인키가 복사되었습니다."); }
-              catch { alert("복사 실패. 수동으로 복사하세요."); }
-            });
-
-            setTimeout(() => box.remove(), 30000);
-          } catch {
-            alert("복호화 실패: 패스프레이즈가 올바른지 확인하세요.");
-          }
-        });
-
-        logoutBtn.addEventListener('click', () => { window._userId = null; show(loginView); });
         show(loginView);
       });
     </script>
