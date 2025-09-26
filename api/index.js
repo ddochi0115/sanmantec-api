@@ -116,7 +116,7 @@ app.post("/api/wallet/save", async (req, res) => {
   }
 });
 
-/* ✅ 추가: 지갑 목록 API (재로그인/새로고침 시 카드 복원) */
+/* ✅ 지갑 목록 (재로그인/새로고침 시 복원) */
 app.get("/api/wallets/:userId", async (req, res) => {
   const { userId } = req.params;
   if (!userId) return res.status(400).json({ message: "userId 필요" });
@@ -132,6 +132,30 @@ app.get("/api/wallets/:userId", async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "지갑 목록 조회 실패" });
+  }
+});
+
+/* ✅ 지갑 삭제 (비밀번호 재확인) */
+app.post("/api/wallet/delete", async (req, res) => {
+  const { userId, password, address } = req.body;
+  if (!userId || !password || !address) {
+    return res.status(400).json({ message: "userId, password, address 필요" });
+  }
+  try {
+    const u = await pool.query("SELECT password_hash FROM users WHERE user_id=$1", [userId]);
+    const user = u.rows[0];
+    if (!user) return res.status(401).json({ message: "인증 실패" });
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) return res.status(401).json({ message: "인증 실패" });
+
+    const d = await pool.query(
+      "DELETE FROM wallets WHERE user_id=$1 AND address=$2",
+      [userId, address]
+    );
+    res.json({ message: "지갑 삭제 완료" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "지갑 삭제 실패" });
   }
 });
 
