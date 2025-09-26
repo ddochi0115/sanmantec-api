@@ -99,23 +99,45 @@ app.post("/api/wallet/create", async (req, res) => {
   }
 });
 
-/* ======================== ✅ 추가: 지갑 목록 API ======================== */
-// 대시보드에 재로그인/새로고침 후에도 지갑이 보이도록 목록을 내려줍니다.
-app.get("/api/wallets/:userId", async (req, res) => {
-  const { userId } = req.params;
-  if (!userId) return res.status(400).json({ message: "userId 필요" });
+/* ===================== ✅ 추가: 개인키 내보내기 API ===================== */
+/**
+ * POST /api/wallet/export
+ * body: { userId, password, address }
+ * 1) 사용자 비밀번호 검증
+ * 2) 해당 주소가 그 사용자의 지갑인지 확인
+ * 3) DB에 저장된 private_key를 반환
+ */
+app.post("/api/wallet/export", async (req, res) => {
+  const { userId, password, address } = req.body;
+  if (!userId || !password || !address) {
+    return res.status(400).json({ message: "userId, password, address 필요" });
+  }
   try {
-    const result = await pool.query(
-      `SELECT address
-         FROM wallets
-        WHERE user_id = $1
-        ORDER BY id DESC`,
+    // 사용자 비번 검증
+    const u = await pool.query(
+      "SELECT password_hash FROM users WHERE user_id=$1",
       [userId]
     );
-    res.json({ wallets: result.rows });
+    const user = u.rows[0];
+    if (!user) return res.status(401).json({ message: "인증 실패" });
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) return res.status(401).json({ message: "인증 실패" });
+
+    // 내 지갑인지 + 개인키 존재 확인
+    const w = await pool.query(
+      "SELECT private_key FROM wallets WHERE user_id=$1 AND address=$2",
+      [userId, address]
+    );
+    const row = w.rows[0];
+    if (!row || !row.private_key) {
+      return res.status(404).json({ message: "해당 지갑이 없거나 내보낼 키가 없습니다." });
+    }
+
+    // 최소한으로 반환
+    res.json({ privateKey: row.private_key });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "지갑 목록 조회 실패" });
+    res.status(500).json({ message: "개인키 내보내기 실패" });
   }
 });
 /* ===================================================================== */

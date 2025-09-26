@@ -95,6 +95,12 @@
                   class="h-10 px-4 rounded-xl border border-indigo-500 text-indigo-600 bg-white font-medium hover:bg-indigo-50">지갑 상속받기</button>
                 <button id="logoutBtn"
                   class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50">로그아웃</button>
+
+                <!-- ✅ 추가: 개인키 내보내기(서버 지갑) -->
+                <button id="exportPkBtn"
+                  class="h-10 px-4 rounded-xl border border-rose-300 text-rose-600 bg-white font-medium hover:bg-rose-50">
+                  개인키 내보내기(서버 지갑)
+                </button>
               </div>
             </div>
           </div>
@@ -119,8 +125,7 @@
     </div>
 
     <script>
-      // ✅ 변경: async로 만들어서 초기 로딩에 await 사용
-      document.addEventListener('DOMContentLoaded', async () => {
+      document.addEventListener('DOMContentLoaded', () => {
         const loginView = document.getElementById('login-view');
         const signupView = document.getElementById('signup-view');
         const dashView = document.getElementById('dashboard-view');
@@ -140,36 +145,12 @@
         const walletListOutgoing = document.getElementById('wallet-list-outgoing');
         const emptyState = document.getElementById('empty-state');
 
+        // ✅ 추가: 개인키 내보내기 버튼
+        const exportPkBtn = document.getElementById('exportPkBtn');
+
         function show(viewEl) {
           [loginView, signupView, dashView].forEach(v => v.classList.add('hidden'));
           viewEl.classList.remove('hidden');
-        }
-
-        // ✅ 추가: 지갑 목록 로더/렌더러
-        async function loadWallets(userId) {
-          try {
-            const res = await fetch(`https://sanmantec-api.vercel.app/api/wallets/${encodeURIComponent(userId)}`);
-            const data = await res.json();
-            renderWallets(data.wallets || []);
-          } catch {
-            renderWallets([]);
-          }
-        }
-        function renderWallets(list) {
-          walletListOutgoing.innerHTML = "";
-          if (!list || list.length === 0) {
-            emptyState.classList.remove("hidden");
-            return;
-          }
-          emptyState.classList.add("hidden");
-          for (const w of list) {
-            const card = document.createElement("div");
-            card.className = "p-4 rounded-xl border border-slate-300 bg-white shadow";
-            card.innerHTML = `
-              <p class="text-sm text-slate-600">주소</p>
-              <p class="font-mono break-all text-indigo-600">${w.address}</p>`;
-            walletListOutgoing.appendChild(card);
-          }
         }
 
         // 비밀번호 토글
@@ -221,11 +202,6 @@
             if (response.ok) {
               alert(result.message);
               window._userId = userId;
-
-              /* ✅ 추가: 사용자 저장 + 목록 불러오기 */
-              localStorage.setItem("userId", userId);
-              await loadWallets(userId);
-
               show(dashView);
             } else alert('로그인 실패: ' + result.message);
           } catch { alert('서버와 연결할 수 없습니다.'); }
@@ -235,7 +211,7 @@
         openCreateBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
         openClaimBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
 
-        // 지갑만들기 버튼 → API 연결 (기존 그대로)
+        // 지갑만들기 버튼 → API 연결(기존 그대로)
         emptyCreateBtn.addEventListener('click', async () => {
           const userId = window._userId;
           if (!userId) { alert("로그인 후 이용해주세요."); show(loginView); return; }
@@ -254,31 +230,57 @@
               <p class="text-sm text-slate-600">주소</p>
               <p class="font-mono break-all text-indigo-600">${result.address}</p>`;
             walletListOutgoing.appendChild(card);
-
-            // (선택) 서버와 동기화하고 싶으면 아래 주석 해제
-            // await loadWallets(userId);
           } catch (err) {
             alert("지갑 생성 실패: " + err.message);
           }
         });
 
-        // 로그아웃 (저장 제거 + UI 리셋)
-        logoutBtn.addEventListener('click', () => {
-          window._userId = null;
-          localStorage.removeItem("userId");     // ✅ 추가
-          walletListOutgoing.innerHTML = "";     // ✅ 추가(선택)
-          emptyState.classList.remove("hidden"); // ✅ 추가(선택)
-          show(loginView);
+        // ✅ 추가: 개인키 내보내기(서버 지갑)
+        exportPkBtn.addEventListener('click', async () => {
+          const userId = window._userId;
+          if (!userId) { alert("로그인 후 이용해주세요."); show(loginView); return; }
+
+          const address = prompt("개인키를 내보낼 지갑 주소를 입력하세요(정확히)");
+          if (!address) return;
+
+          const password = prompt("계정 비밀번호를 다시 입력하세요(개인키 보호를 위해)");
+          if (!password) return;
+
+          try {
+            const resp = await fetch("https://sanmantec-api.vercel.app/api/wallet/export", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId, password, address })
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.message || "내보내기 실패");
+
+            const pk = data.privateKey;
+
+            // 30초만 화면에 표시 + 복사 버튼 제공
+            const box = document.createElement('div');
+            box.className = "mt-3 p-3 rounded-xl border border-rose-300 bg-rose-50 text-rose-800";
+            box.innerHTML = `
+              <div class="font-semibold mb-1">⚠️ 개인키(30초 후 자동 숨김)</div>
+              <div class="font-mono break-all text-sm">${pk}</div>
+              <button class="mt-2 px-3 h-8 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs" id="copyPkBtn">
+                복사
+              </button>
+            `;
+            document.getElementById('lists-wrap').prepend(box);
+
+            box.querySelector('#copyPkBtn').addEventListener('click', async () => {
+              try { await navigator.clipboard.writeText(pk); alert("개인키가 복사되었습니다. 안전하게 보관하세요."); }
+              catch { alert("복사 실패. 수동으로 복사하세요."); }
+            });
+
+            setTimeout(() => box.remove(), 30000);
+          } catch (e) {
+            alert(e.message || "개인키 내보내기 실패");
+          }
         });
 
-        /* ✅ 추가: 자동 로그인 복원 */
-        const savedUser = localStorage.getItem("userId");
-        if (savedUser) {
-          window._userId = savedUser;
-          await loadWallets(savedUser);
-          show(dashView);
-          return;
-        }
+        logoutBtn.addEventListener('click', () => { window._userId = null; show(loginView); });
 
         show(loginView);
       });
