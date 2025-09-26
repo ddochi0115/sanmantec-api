@@ -316,7 +316,7 @@
         // 상속받기 (더미)
         openClaimBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
 
-        // ✅ 공통 지갑 생성 플로우 (상단/빈상태/리스트 상단 버튼 모두 연결)
+        // ✅ 공통 지갑 생성 플로우 (상단/빈상태/리스트 상단 버튼 모두 사용)
         async function doCreateWalletFlow() {
           const userId = window._userId;
           if (!userId) { alert("로그인 후 이용해주세요."); show(loginView); return; }
@@ -350,8 +350,10 @@
           }
         }
 
-        // 버튼들 연결
-        openCreateBtn.addEventListener('click', doCreateWalletFlow);
+        // ✅ 버튼 연결 (요청사항에 따라 '상속지갑 만들기'만 미구현 알림)
+        openCreateBtn.addEventListener('click', () => {
+          alert("이 기능은 구현되지 않았습니다.");
+        });
         emptyCreateBtn.addEventListener('click', doCreateWalletFlow);
         listCreateBtn.addEventListener('click', doCreateWalletFlow);
 
