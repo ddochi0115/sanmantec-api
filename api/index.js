@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
-const { ethers } = require("ethers"); 
+// const { ethers } = require("ethers"); // ❌ 더 이상 서버에서 생성 안 함 (유지해도 무방)
 
 const app = express();
 app.use(express.json());
@@ -79,20 +79,21 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// 지갑 생성
+// 지갑 생성(저장): 클라이언트에서 생성/암호화 → 서버는 저장만
 app.post("/api/wallet/create", async (req, res) => {
-  const { userId } = req.body;
-  if (!userId) {
-    return res.status(400).json({ message: "userId 필요" });
+  // ✅ CHANGED: 서버는 userId + address + keystore만 받음
+  const { userId, address, keystore } = req.body;
+  if (!userId || !address || !keystore) {
+    return res.status(400).json({ message: "userId, address, keystore 필요" });
   }
 
   try {
-    const wallet = ethers.Wallet.createRandom();
+    // ✅ CHANGED: private_key 저장 제거, keystore_json 저장
     await pool.query(
-      "INSERT INTO wallets (user_id, address, private_key) VALUES ($1,$2,$3)",
-      [userId, wallet.address, wallet.privateKey]
+      "INSERT INTO wallets (user_id, address, keystore_json) VALUES ($1,$2,$3)",
+      [userId, address, keystore]
     );
-    res.json({ message: "지갑 생성 성공", address: wallet.address });
+    res.json({ message: "지갑 저장 성공", address });
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "지갑 생성 실패" });

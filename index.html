@@ -5,17 +5,12 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Sanmantec Inheritance Service</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ✅ ADDED: 브라우저용 ethers -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
     <style>
-      :root {
-        --radius: 12px;
-      }
-      html,
-      body {
-        height: 100%;
-      }
-      .hidden {
-        display: none;
-      }
+      :root { --radius: 12px; }
+      html, body { height: 100%; }
+      .hidden { display: none; }
       .tab-active {
         background: rgb(238 242 255);
         color: rgb(55 48 163);
@@ -30,138 +25,64 @@
       }
     </style>
   </head>
-  <body
-    class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center p-6"
-  >
+  <body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center p-6">
     <div class="w-full max-w-3xl">
       <div class="mb-10 text-center">
         <h1 class="text-3xl font-extrabold tracking-tight">
-          <span
-            class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600"
-          >
+          <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
             Sanmantec Inheritance Service
           </span>
         </h1>
-        <p class="mt-2 text-slate-600 text-sm">
-          Secure crypto inheritance, made simple.
-        </p>
+        <p class="mt-2 text-slate-600 text-sm">Secure crypto inheritance, made simple.</p>
       </div>
 
-      <div
-        class="rounded-2xl bg-white/90 shadow-xl ring-1 ring-slate-200 backdrop-blur p-6 md:p-8"
-      >
+      <div class="rounded-2xl bg-white/90 shadow-xl ring-1 ring-slate-200 backdrop-blur p-6 md:p-8">
         <!-- 로그인 -->
         <form id="login-view" class="space-y-6">
           <div class="space-y-2">
-            <label
-              for="loginUserId"
-              class="block text-sm font-medium text-slate-700"
-              >아이디</label
-            >
-            <input
-              id="loginUserId"
-              type="text"
-              required
-              placeholder="아이디 입력"
-              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4"
-            />
+            <label for="loginUserId" class="block text-sm font-medium text-slate-700">아이디</label>
+            <input id="loginUserId" type="text" required placeholder="아이디 입력"
+              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4" />
           </div>
           <div class="space-y-2">
-            <label
-              for="loginPassword"
-              class="block text-sm font-medium text-slate-700"
-              >비밀번호</label
-            >
+            <label for="loginPassword" class="block text-sm font-medium text-slate-700">비밀번호</label>
             <div class="relative">
-              <input
-                id="loginPassword"
-                type="password"
-                required
-                placeholder="비밀번호 입력"
-                class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4 pr-24"
-              />
-              <button
-                type="button"
-                id="loginTogglePw"
-                class="absolute inset-y-0 right-2 my-auto h-8 px-3 rounded-lg border border-slate-300 text-xs text-slate-600 hover:bg-slate-50"
-              >
+              <input id="loginPassword" type="password" required placeholder="비밀번호 입력"
+                class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4 pr-24" />
+              <button type="button" id="loginTogglePw"
+                class="absolute inset-y-0 right-2 my-auto h-8 px-3 rounded-lg border border-slate-300 text-xs text-slate-600 hover:bg-slate-50">
                 Show
               </button>
             </div>
           </div>
-          <button
-            type="submit"
-            class="w-full h-11 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
-          >
-            로그인
-          </button>
-          <button
-            type="button"
-            id="toSignupBtn"
-            class="w-full h-11 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50"
-          >
-            회원가입
-          </button>
+          <button type="submit"
+            class="w-full h-11 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700">로그인</button>
+          <button type="button" id="toSignupBtn"
+            class="w-full h-11 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50">회원가입</button>
         </form>
 
         <!-- 회원가입 -->
         <form id="signup-view" class="space-y-6 hidden">
           <div class="space-y-2">
-            <label
-              for="signupUserId"
-              class="block text-sm font-medium text-slate-700"
-              >아이디</label
-            >
-            <input
-              id="signupUserId"
-              type="text"
-              required
-              placeholder="아이디(영문/숫자 4~20자)"
-              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4"
-            />
+            <label for="signupUserId" class="block text-sm font-medium text-slate-700">아이디</label>
+            <input id="signupUserId" type="text" required placeholder="아이디(영문/숫자 4~20자)"
+              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4" />
           </div>
           <div class="space-y-2">
-            <label
-              for="signupPassword"
-              class="block text-sm font-medium text-slate-700"
-              >비밀번호</label
-            >
-            <input
-              id="signupPassword"
-              type="password"
-              required
-              placeholder="8자 이상 권장"
-              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4"
-            />
+            <label for="signupPassword" class="block text-sm font-medium text-slate-700">비밀번호</label>
+            <input id="signupPassword" type="password" required placeholder="8자 이상 권장"
+              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4" />
           </div>
           <div class="space-y-2">
-            <label
-              for="signupPassword2"
-              class="block text-sm font-medium text-slate-700"
-              >비밀번호 확인</label
-            >
-            <input
-              id="signupPassword2"
-              type="password"
-              required
-              placeholder="비밀번호 확인"
-              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4"
-            />
+            <label for="signupPassword2" class="block text-sm font-medium text-slate-700">비밀번호 확인</label>
+            <input id="signupPassword2" type="password" required placeholder="비밀번호 확인"
+              class="w-full h-11 rounded-xl border border-slate-300 bg-white px-4" />
             <p id="pwMatchMsg" class="text-xs"></p>
           </div>
-          <button
-            type="submit"
-            class="w-full h-11 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
-          >
-            계정 만들기
-          </button>
-          <button
-            type="button"
-            id="toLoginBtn"
-            class="w-full h-11 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50"
-          >
-            로그인으로 돌아가기
-          </button>
+          <button type="submit"
+            class="w-full h-11 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700">계정 만들기</button>
+          <button type="button" id="toLoginBtn"
+            class="w-full h-11 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50">로그인으로 돌아가기</button>
         </form>
 
         <!-- 대시보드 -->
@@ -170,110 +91,44 @@
             <div class="flex items-center justify-between gap-4">
               <h2 class="text-xl font-semibold tracking-tight">내 상속지갑</h2>
               <div class="flex gap-2">
-                <button
-                  id="openCreateBtn"
-                  class="h-10 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
-                >
-                  상속지갑 만들기
-                </button>
-                <button
-                  id="openClaimBtn"
-                  class="h-10 px-4 rounded-xl border border-indigo-500 text-indigo-600 bg-white font-medium hover:bg-indigo-50"
-                >
-                  지갑 상속받기
-                </button>
-                <button
-                  id="logoutBtn"
-                  class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50"
-                >
-                  로그아웃
-                </button>
+                <button id="openCreateBtn"
+                  class="h-10 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700">상속지갑 만들기</button>
+                <button id="openClaimBtn"
+                  class="h-10 px-4 rounded-xl border border-indigo-500 text-indigo-600 bg-white font-medium hover:bg-indigo-50">지갑 상속받기</button>
+                <button id="logoutBtn"
+                  class="h-10 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50">로그아웃</button>
               </div>
-            </div>
-
-            <div
-              class="inline-flex rounded-xl border border-slate-200 overflow-hidden w-full md:w-auto"
-            >
-              <button
-                id="tab-outgoing"
-                class="px-4 py-2 text-sm border-r border-slate-200"
-              >
-                내 지갑
-              </button>
-              <button id="tab-incoming" class="px-4 py-2 text-sm">
-                받는 지갑
-              </button>
             </div>
           </div>
 
-          <div
-            id="empty-state"
-            class="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600"
-          >
+          <div id="empty-state"
+            class="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-600">
             아직 생성된 상속지갑이 없어요.
             <div class="mt-4">
-              <button
-                id="emptyCreateBtn"
-                class="h-10 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
-              >
-                지갑만들기
-              </button>
+              <button id="emptyCreateBtn"
+                class="h-10 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700">지갑만들기</button>
             </div>
           </div>
 
           <div id="lists-wrap" class="mt-4 space-y-6">
             <div>
               <h3 class="text-sm font-medium text-slate-700 mb-2">내 지갑</h3>
-              <div
-                id="wallet-list-outgoing"
-                class="grid grid-cols-1 md:grid-cols-2 gap-4"
-              ></div>
-            </div>
-            <div>
-              <h3 class="text-sm font-medium text-slate-700 mb-2">받는 지갑</h3>
-              <div
-                id="wallet-list-incoming"
-                class="grid grid-cols-1 md:grid-cols-2 gap-4"
-              ></div>
+              <div id="wallet-list-outgoing" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
           </div>
         </section>
-
-        <!-- 지갑 생성 -->
-        <form id="create-view" class="space-y-6 hidden" autocomplete="off">
-          <h2 id="formTitle" class="text-xl font-semibold tracking-tight">
-            상속지갑 생성
-          </h2>
-
-          <div class="flex items-center gap-3">
-            <button
-              type="submit"
-              id="submitBtn"
-              class="h-11 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700"
-            >
-              지갑 생성하기
-            </button>
-            <button
-              type="button"
-              id="cancelCreateBtn"
-              class="h-11 px-4 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-            >
-              취소
-            </button>
-          </div>
-        </form>
       </div>
     </div>
+
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        // DOM
         const loginView = document.getElementById('login-view');
         const signupView = document.getElementById('signup-view');
         const dashView = document.getElementById('dashboard-view');
-        const createView = document.getElementById('create-view');
         const toSignupBtn = document.getElementById('toSignupBtn');
         const toLoginBtn = document.getElementById('toLoginBtn');
         const openCreateBtn = document.getElementById('openCreateBtn');
+        const openClaimBtn = document.getElementById('openClaimBtn');
         const emptyCreateBtn = document.getElementById('emptyCreateBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const loginUserId = document.getElementById('loginUserId');
@@ -283,10 +138,11 @@
         const signupPassword = document.getElementById('signupPassword');
         const signupPassword2 = document.getElementById('signupPassword2');
         const pwMatchMsg = document.getElementById('pwMatchMsg');
+        const walletListOutgoing = document.getElementById('wallet-list-outgoing');
+        const emptyState = document.getElementById('empty-state');
 
-        // 유틸
         function show(viewEl) {
-          [loginView, signupView, dashView, createView].forEach(v => v.classList.add('hidden'));
+          [loginView, signupView, dashView].forEach(v => v.classList.add('hidden'));
           viewEl.classList.remove('hidden');
         }
 
@@ -300,18 +156,8 @@
         // 회원가입 비밀번호 확인
         function checkMatch() {
           const p1 = signupPassword.value, p2 = signupPassword2.value;
-          if (!p1 && !p2) {
-            pwMatchMsg.textContent = '';
-            pwMatchMsg.className = 'text-xs';
-            return;
-          }
-          if (p1 === p2) {
-            pwMatchMsg.textContent = '비밀번호가 일치합니다.';
-            pwMatchMsg.className = 'text-xs text-green-600';
-          } else {
-            pwMatchMsg.textContent = '비밀번호가 일치하지 않습니다.';
-            pwMatchMsg.className = 'text-xs text-red-600';
-          }
+          if (!p1 && !p2) { pwMatchMsg.textContent = ''; return; }
+          pwMatchMsg.textContent = p1 === p2 ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.';
         }
         signupPassword.addEventListener('input', checkMatch);
         signupPassword2.addEventListener('input', checkMatch);
@@ -321,32 +167,18 @@
           e.preventDefault();
           const userId = signupUserId.value.trim();
           const password = signupPassword.value;
-
           if (!userId || password.length < 8 || password !== signupPassword2.value) {
-            alert('입력 정보를 다시 확인해주세요.');
-            return;
+            alert('입력 정보를 다시 확인해주세요.'); return;
           }
-
           try {
             const response = await fetch("https://sanmantec-api.vercel.app/api/signup", {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ userId, password }),
             });
             const result = await response.json();
-
-            if (response.ok) {
-              alert(result.message);
-              show(loginView);
-              loginUserId.value = userId;
-              loginPassword.value = '';
-            } else {
-              alert('회원가입 실패: ' + result.message);
-            }
-          } catch (error) {
-            console.error('Error:', error);
-            alert('서버와 연결할 수 없습니다.');
-          }
+            if (response.ok) { alert(result.message); show(loginView); }
+            else alert('회원가입 실패: ' + result.message);
+          } catch { alert('서버와 연결할 수 없습니다.'); }
         });
 
         // 로그인
@@ -354,65 +186,45 @@
           e.preventDefault();
           const userId = loginUserId.value.trim();
           const password = loginPassword.value;
-
           try {
             const response = await fetch("https://sanmantec-api.vercel.app/api/login", {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ userId, password }),
             });
             const result = await response.json();
-
             if (response.ok) {
               alert(result.message);
+              window._userId = userId;
               show(dashView);
-              window._userId = userId; // 로그인 아이디 보관
-            } else {
-              alert('로그인 실패: ' + result.message);
-            }
-          } catch (error) {
-            console.error('Error:', error);
-            alert('서버와 연결할 수 없습니다.');
-          }
+            } else alert('로그인 실패: ' + result.message);
+          } catch { alert('서버와 연결할 수 없습니다.'); }
         });
 
-        // 화면 전환
-        toSignupBtn.addEventListener('click', () => show(signupView));
-        toLoginBtn.addEventListener('click', () => show(loginView));
-        if (logoutBtn) logoutBtn.addEventListener('click', () => { window._userId = null; show(loginView); });
+        // 상속지갑 만들기 / 지갑 상속받기 → 더미
+        openCreateBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
+        openClaimBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
 
-        // (2) 버튼 텍스트 변경
-        if (emptyCreateBtn) emptyCreateBtn.textContent = "지갑만들기";
-
-        // (1) 상단 버튼 → 백엔드 연결
-        if (openCreateBtn) openCreateBtn.addEventListener('click', async () => {
-          const userId = window._userId || (loginUserId && loginUserId.value.trim());
-          if (!userId) {
-            alert('로그인 후 이용해주세요.');
-            show(loginView);
-            return;
-          }
+        // 지갑만들기 버튼 → ✅ CHANGED: 클라이언트에서 생성/암호화 → 서버에 저장만 요청
+        emptyCreateBtn.addEventListener('click', async () => {
+          const userId = window._userId;
+          if (!userId) { alert("로그인 후 이용해주세요."); show(loginView); return; }
 
           try {
+            // 1) 브라우저에서 지갑 생성
+            const wallet = ethers.Wallet.createRandom();
+
+            // 2) 사용자에게 패스프레이즈 입력받아 keystore 암호화
+            const passphrase = prompt("지갑 복구용 패스프레이즈를 설정하세요(잊으면 복구 불가)");
+            if (!passphrase) { alert("취소되었습니다."); return; }
+            const keystoreJson = await wallet.encrypt(passphrase);
+
+            // 3) 서버에는 address + keystore만 전송 (개인키는 전송 금지)
             const response = await fetch("https://sanmantec-api.vercel.app/api/wallet/create", {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId })
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId, address: wallet.address, keystore: keystoreJson }),
             });
+
             const result = await response.json();
-            if (!response.ok) throw new Error(result?.message || `요청 실패(${response.status})`);
+            if (!response.ok) throw new Error(result.message || "지갑 생성 실패");
 
-            alert((result.message || '지갑 생성 성공') + (result.address ? `\n주소: ${result.address}` : ''));
-            show(dashView);
-          } catch (err) {
-            console.error(err);
-            alert('지갑 생성 실패: ' + err.message);
-          }
-        });
-
-        // 초기화면
-        show(loginView);
-      });
-    </script>
-  </body>
-</html>
+            alert("지갑 생성 성공!\n주소: " + result.address + "\n(keystore는 서버에 저장되었습니다. 패스프레이즈는 꼭 기억!)"
