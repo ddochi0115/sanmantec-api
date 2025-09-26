@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
-// const { ethers } = require("ethers"); // ❌ 더 이상 서버에서 생성 안 함 (유지해도 무방)
+// const { ethers } = require("ethers"); // 기존 그대로 두되, 서버에선 지갑 생성 안 씀
 
 const app = express();
 app.use(express.json());
@@ -79,18 +79,22 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// 지갑 생성(저장): 클라이언트에서 생성/암호화 → 서버는 저장만
+/**
+ * 지갑 생성(저장): 클라이언트에서 생성/암호화 → 서버는 저장만
+ * ✅ 변경점:
+ *  - 요청 바디: { userId, address, keystore }
+ *  - DB 저장: wallets(user_id, address, keystore_json)
+ *  - private_key는 더 이상 받지도/저장하지도 않음
+ */
 app.post("/api/wallet/create", async (req, res) => {
-  // ✅ CHANGED: 서버는 userId + address + keystore만 받음
-  const { userId, address, keystore } = req.body;
+  const { userId, address, keystore } = req.body; // ✅ CHANGED
   if (!userId || !address || !keystore) {
     return res.status(400).json({ message: "userId, address, keystore 필요" });
   }
 
   try {
-    // ✅ CHANGED: private_key 저장 제거, keystore_json 저장
     await pool.query(
-      "INSERT INTO wallets (user_id, address, keystore_json) VALUES ($1,$2,$3)",
+      "INSERT INTO wallets (user_id, address, keystore_json) VALUES ($1,$2,$3)", // ✅ CHANGED
       [userId, address, keystore]
     );
     res.json({ message: "지갑 저장 성공", address });
