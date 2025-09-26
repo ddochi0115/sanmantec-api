@@ -81,7 +81,7 @@
             <div class="flex items-center justify-between gap-4">
               <h2 class="text-xl font-semibold tracking-tight">내 상속지갑</h2>
               <div class="flex gap-2">
-                <!-- ✅ 항상 표시되지만 현재는 미구현 알림만 -->
+                <!-- ✅ 지갑이 있든 없든 항상 표시 -->
                 <button id="openCreateBtn"
                   class="h-10 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700">상속지갑 만들기</button>
                 <button id="openClaimBtn"
@@ -104,7 +104,7 @@
           <div id="lists-wrap" class="mt-4 space-y-6">
             <div class="flex items-center justify-between">
               <h3 class="text-sm font-medium text-slate-700 mb-2">내 지갑</h3>
-              <!-- ✅ 리스트 상단에도 버튼 유지(현재는 미구현 알림만) -->
+              <!-- ✅ 리스트 상단에도 '새 지갑 추가' 버튼 추가 (이미 지갑이 있는 사용자용) -->
               <button id="listCreateBtn"
                 class="h-9 px-3 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">새 지갑 추가</button>
             </div>
@@ -117,6 +117,8 @@
     <script>
       document.addEventListener('DOMContentLoaded', async () => {
         const API = "https://sanmantec-api.vercel.app";
+
+        // Views & Elements
         const loginView = document.getElementById('login-view');
         const signupView = document.getElementById('signup-view');
         const dashView = document.getElementById('dashboard-view');
@@ -179,4 +181,204 @@
             <p class="text-sm text-slate-600">주소</p>
             <p class="font-mono break-all text-indigo-600">${address}</p>
             <div class="mt-3 flex flex-wrap gap-2">
-              <button class="reveal-btn h-9 px-3 rounded-lg border border-rose-300 text-rose-600 bg-white text-sm hover:bg
+              <button class="reveal-btn h-9 px-3 rounded-lg border border-rose-300 text-rose-600 bg-white text-sm hover:bg-rose-50">개인키 보기</button>
+              <button class="download-btn h-9 px-3 rounded-lg border border-slate-300 text-slate-700 bg-white text-sm hover:bg-slate-50">keystore.json 다운로드</button>
+              <button class="delete-btn h-9 px-3 rounded-lg border border-slate-300 text-slate-700 bg-white text-sm hover:bg-slate-50">삭제</button>
+            </div>
+          `;
+
+          // 개인키 보기 (패스프레이즈 16 "자")
+          card.querySelector(".reveal-btn").addEventListener("click", async () => {
+            try {
+              const pass = prompt("패스프레이즈를 입력하세요(최소 16자 + 특수문자 1개 이상)");
+              if (!pass) return;
+              const w = await ethers.Wallet.fromEncryptedJson(keystoreJson, pass);
+              const pk = w.privateKey;
+              const box = document.createElement("div");
+              box.className = "mt-3 p-3 rounded-xl border border-rose-300 bg-rose-50 text-rose-800";
+              box.innerHTML = `
+                <div class="font-semibold mb-1">⚠️ 개인키(30초 후 자동 숨김)</div>
+                <div class="font-mono break-all text-sm">${pk}</div>
+                <button class="mt-2 px-3 h-8 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs" id="copyPkBtn">복사</button>
+              `;
+              card.appendChild(box);
+              box.querySelector("#copyPkBtn").addEventListener("click", async () => {
+                try { await navigator.clipboard.writeText(pk); alert("개인키가 복사되었습니다."); }
+                catch { alert("복사 실패. 수동 복사해주세요."); }
+              });
+              setTimeout(() => box.remove(), 30000);
+            } catch {
+              alert("복호화 실패: 패스프레이즈가 올바른지 확인하세요.");
+            }
+          });
+
+          // keystore 다운로드 (검증용으로 복호화 시도)
+          card.querySelector(".download-btn").addEventListener("click", async () => {
+            try {
+              const pass = prompt("패스프레이즈를 입력하세요(다운로드 전 확인: 최소 16자 + 특수문자 1개 이상)");
+              if (!pass) return;
+              await ethers.Wallet.fromEncryptedJson(keystoreJson, pass); // 검증
+              const blob = new Blob([keystoreJson], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `keystore-${address.slice(0,10)}-${Date.now()}.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+              alert("keystore.json이 다운로드되었습니다.");
+            } catch {
+              alert("다운로드 실패: 패스프레이즈가 올바른지 확인하세요.");
+            }
+          });
+
+          // 삭제
+          card.querySelector(".delete-btn").addEventListener("click", async () => {
+            if (!confirm("정말 이 지갑을 삭제할까요? (자산이 있으면 반드시 먼저 이동하세요)")) return;
+            const userId = window._userId;
+            if (!userId) return alert("로그인 필요");
+            const pw = prompt("계정 비밀번호를 입력해주세요(삭제 확인)");
+            if (!pw) return;
+            try {
+              const res = await fetch(`${API}/api/wallet/delete`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, password: pw, address })
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.message || "삭제 실패");
+              card.remove();
+              if (walletListOutgoing.children.length === 0) emptyState.classList.remove("hidden");
+              alert("지갑이 삭제되었습니다.");
+            } catch (e) {
+              alert(e.message || "삭제 실패");
+            }
+          });
+
+          return card;
+        }
+
+        // 비밀번호 토글
+        loginTogglePw.addEventListener('click', () => {
+          const showPw = loginPassword.type === 'password';
+          loginPassword.type = showPw ? 'text' : 'password';
+          loginTogglePw.textContent = showPw ? 'Hide' : 'Show';
+        });
+
+        // 회원가입 비밀번호 확인
+        function checkMatch() {
+          const p1 = signupPassword.value, p2 = signupPassword2.value;
+          if (!p1 && !p2) { pwMatchMsg.textContent = ''; return; }
+          pwMatchMsg.textContent = p1 === p2 ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.';
+        }
+        signupPassword.addEventListener('input', checkMatch);
+        signupPassword2.addEventListener('input', checkMatch);
+
+        // 회원가입
+        signupView.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const userId = signupUserId.value.trim();
+          const password = signupPassword.value;
+          if (!userId || password.length < 8 || password !== signupPassword2.value) {
+            alert('입력 정보를 다시 확인해주세요.'); return;
+          }
+          try {
+            const response = await fetch(`${API}/api/signup`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId, password }),
+            });
+            const result = await response.json();
+            if (response.ok) { alert(result.message); show(loginView); }
+            else alert('회원가입 실패: ' + result.message);
+          } catch { alert('서버와 연결할 수 없습니다.'); }
+        });
+
+        // 로그인
+        loginView.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const userId = loginUserId.value.trim();
+          const password = loginPassword.value;
+          try {
+            const response = await fetch(`${API}/api/login`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId, password }),
+            });
+            const result = await response.json();
+            if (response.ok) {
+              alert(result.message);
+              window._userId = userId;
+              localStorage.setItem("userId", userId);
+              await loadWallets(userId);
+              show(dashView);
+            } else alert('로그인 실패: ' + result.message);
+          } catch { alert('서버와 연결할 수 없습니다.'); }
+        });
+
+        // 상속받기 (더미)
+        openClaimBtn.addEventListener('click', () => alert("이 기능은 구현되지 않았습니다."));
+
+        // ✅ 공통 지갑 생성 플로우 (상단/빈상태/리스트 상단 버튼 모두 연결)
+        async function doCreateWalletFlow() {
+          const userId = window._userId;
+          if (!userId) { alert("로그인 후 이용해주세요."); show(loginView); return; }
+
+          // 패스프레이즈 입력 & 정책 검증 (최소 16자 + 특수문자)
+          let passphrase = prompt("지갑 복구용 패스프레이즈를 설정하세요.\n(최소 16자 + 특수문자 1개 이상)");
+          while (passphrase !== null && !validatePassphrase(passphrase)) {
+            alert("형식을 확인하세요: 최소 16자 + 특수문자 1개 이상 포함해야 합니다.");
+            passphrase = prompt("지갑 복구용 패스프레이즈를 다시 입력하세요.\n(최소 16자 + 특수문자 1개 이상)");
+          }
+          if (passphrase === null) return; // 취소
+
+          try {
+            const wallet = ethers.Wallet.createRandom();
+            const keystoreJson = await wallet.encrypt(passphrase);
+
+            const response = await fetch(`${API}/api/wallet/save`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId, address: wallet.address, keystore: keystoreJson }),
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || "지갑 저장 실패");
+
+            alert("지갑 생성/저장 성공!\n주소: " + result.address);
+
+            emptyState.classList.add("hidden");
+            walletListOutgoing.prepend(createWalletCard(result.address, keystoreJson));
+          } catch (err) {
+            alert("지갑 생성 실패: " + (err.message || err));
+          }
+        }
+
+        // 버튼들 연결
+        openCreateBtn.addEventListener('click', doCreateWalletFlow);
+        emptyCreateBtn.addEventListener('click', doCreateWalletFlow);
+        listCreateBtn.addEventListener('click', doCreateWalletFlow);
+
+        // 로그아웃
+        logoutBtn.addEventListener('click', () => {
+          window._userId = null;
+          localStorage.removeItem("userId");
+          walletListOutgoing.innerHTML = "";
+          emptyState.classList.remove("hidden");
+          show(loginView);
+        });
+
+        // 자동 로그인 복원
+        const savedUser = localStorage.getItem("userId");
+        if (savedUser) {
+          window._userId = savedUser;
+          await loadWallets(savedUser);
+          show(dashView);
+          return;
+        }
+
+        // 네비게이션
+        toSignupBtn.addEventListener('click', () => show(signupView));
+        toLoginBtn.addEventListener('click', () => show(loginView));
+
+        show(loginView);
+      });
+    </script>
+  </body>
+</html>
